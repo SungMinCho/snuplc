@@ -366,6 +366,8 @@ CToken* CScanner::Scan()
       if(_in->peek() == '|') {
         tokval += GetChar();
         token = tTermOp;
+      } else {
+        tokval = "You said | did you mean || ?";
       }
       break;
 
@@ -392,6 +394,8 @@ CToken* CScanner::Scan()
       if(_in->peek() == '&') {
         tokval += GetChar();
         token = tFactOp;
+      } else {
+        tokval = "You said & did you mean && ?";
       }
       break;
 
