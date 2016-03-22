@@ -463,6 +463,7 @@ CToken* CScanner::Scan()
         tokval = tokval.substr(1); /// get rid of quotation mark
         if(IsValidChar(tokval)) {
           token = tCharacter;
+          tokval = unescape(tokval);
         } else {
           string tmp = "Invalid character description : ";
           tokval = tmp + tokval;
@@ -489,6 +490,7 @@ CToken* CScanner::Scan()
         tokval = tokval.substr(1); // get rid of quotation mark
         if(IsValidString(tokval)) {
           token = tString;
+          tokval = unescape(tokval);
         } else {
           string tmp = "Invalid string description : ";
           tokval = tmp + tokval;
@@ -584,3 +586,29 @@ bool CScanner::IsValidString(string s) const
   }
   return true;
 } 
+
+string CScanner::unescape(string s) const
+{
+  string res;
+  char* c = (char*) s.c_str();
+  while(*c != '\0') {
+    if(*c == '\\') {
+      c++;
+      if(*c == 'n') res += '\n';
+      else if(*c == 't') res += '\t';
+      else if(*c == '"') res += '"';
+      else if(*c == '\'') res += '\'';
+      else if(*c == '\\') res += '\\';
+      else if(*c == '0') res += '\0';
+      else {
+        res += '\\';
+        if(*c == '\0') break;
+        else res += *c;
+      }
+    } else {
+      res += *c;
+    }
+    c++;
+  }
+  return res;
+}

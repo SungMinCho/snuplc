@@ -344,6 +344,11 @@ class CScanner {
     /// @retval false string is not a valid string description
     bool IsValidString(string s) const;
 
+    /// @brief unescape all escape characters
+    ///
+    /// @param s string
+    string unescape(string s) const;
+
     /// @}
 
 
