@@ -466,7 +466,7 @@ CToken* CScanner::Scan()
           tokval = unescape(tokval);
         } else {
           string tmp = "Invalid character description : ";
-          tokval = tmp + tokval;
+          tokval = tmp + unescape(tokval);
         }
       }
       break;
@@ -493,7 +493,7 @@ CToken* CScanner::Scan()
           tokval = unescape(tokval);
         } else {
           string tmp = "Invalid string description : ";
-          tokval = tmp + tokval;
+          tokval = tmp + unescape(tokval);
         }
       }
       break;
