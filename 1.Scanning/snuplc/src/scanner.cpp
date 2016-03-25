@@ -581,7 +581,11 @@ bool CScanner::IsValidString(string s) const
 {
   const char* c = (char *)s.c_str();
   while(*c != '\0') {
-    if(!IsAsciiChar(*c)) return false;
+    if(*c == '\\') {
+      c++;
+      if(!(*c == 'n' || *c == 't' || *c == '"' || *c == '\'' || *c == '\\' || *c == '0')) return false;
+    }
+    else if(!IsAsciiChar(*c)) return false;
     c++;
   }
   return true;
