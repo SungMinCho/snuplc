@@ -1330,7 +1330,8 @@ CAstStringConstant::CAstStringConstant(CToken t, const string value,
 {
   CTypeManager *tm = CTypeManager::Get();
 
-  _type = tm->GetArray(strlen(CToken::unescape(value).c_str())+1,
+  /// sungmin : i removed unescape because my scanner unescapes already
+  _type = tm->GetArray(strlen(value.c_str())+1,
                        tm->GetChar());
   _value = new CDataInitString(value);
 
@@ -1380,7 +1381,8 @@ string CAstStringConstant::dotAttr(void) const
 {
   ostringstream out;
   // the string is already escaped, but dot requires double escaping
-  out << " [label=\"\\\"" << CToken::escape(GetValueStr())
+  // out << " [label=\"\\\"" << CToken::escape(GetValueStr())
+  out << " [label=\"\\\"" << GetValueStr() // sungmin : needs to escape... TODO later
       << "\\\"\",shape=ellipse]";
   return out.str();
 }

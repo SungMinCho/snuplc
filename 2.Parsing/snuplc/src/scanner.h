@@ -4,9 +4,8 @@
 /// @section changelog Change Log
 /// 2012/09/14 Bernhard Egger created
 /// 2013/03/07 Bernhard Egger adapted to SnuPL/0
-/// 2016/03/11 Bernhard Egger adapted to SnuPL/1
-/// 2016/03/13 Bernhard Egger assignment 1: scans SnuPL/-1
-
+/// 2014/09/10 Bernhard Egger assignment 1: scans SnuPL/-1
+/// 2016/03/13 Bernhard Egger assignment 1: adapted to modified SnuPL/-1 syntax
 ///
 /// @section license_section License
 /// Copyright (c) 2012-2016, Bernhard Egger
@@ -34,8 +33,8 @@
 /// DAMAGE.
 //------------------------------------------------------------------------------
 
-#ifndef __SnuPL_SCANNER_H__
-#define __SnuPL_SCANNER_H__
+#ifndef __SnuPL1_SCANNER_H__
+#define __SnuPL1_SCANNER_H__
 
 #include <istream>
 #include <ostream>
@@ -45,20 +44,42 @@
 using namespace std;
 
 //------------------------------------------------------------------------------
-/// @brief SnuPL/0 token type
+/// @brief SnuPL/-1 token type
 ///
 /// each member of this enumeration represents a token in SnuPL/0
 ///
 enum EToken {
-  tNumber,                          ///< number
-  tPlusMinus,                       ///< '+' or '-'
-  tMulDiv,                          ///< '*' or '/'
+  tCharacter=0,                     ///< a character
+  tString,                          ///< a string
+  tIdent,                           ///< an ident
+  tNumber,                          ///< a number
+  tBoolean,                         ///< a boolean
+  tBaseType,                        ///< a basetype
+  tFactOp,                          ///< '*' or '/' or "&&"
+  tTermOp,                          ///< '+' or '-' or "||"
   tRelOp,                           ///< relational operator
+  tNot,                             ///< a '!'
+  tLBrak,                           ///< a '('
+  tRBrak,                           ///< a ')'
+  tLSqrBrak,                        ///< a '['
+  tRSqrBrak,                        ///< a ']'
   tAssign,                          ///< assignment operator
   tSemicolon,                       ///< a semicolon
+  tColon,                           ///< a colon
+  tComma,                           ///< a comma
   tDot,                             ///< a dot
-  tLParens,                         ///< a left parenthesis
-  tRParens,                         ///< a right parenthesis
+  tModule,                          ///< module
+  tBegin,                           ///< begin
+  tEnd,                             ///< end
+  tIf,                              ///< if
+  tThen,                            ///< then
+  tElse,                            ///< else
+  tWhile,                           ///< while
+  tDo,                              ///< do
+  tReturn,                          ///< return
+  tVar,                             ///< var
+  tProcedure,                       ///< procedure
+  tFunction,                        ///< function
 
   tEOF,                             ///< end of file
   tIOError,                         ///< I/O error
@@ -140,21 +161,6 @@ class CToken {
 
     /// @}
 
-    /// @name string escape/unescaping (static methods)
-    /// @{
-
-    /// @brief escape special characters in a string
-    ///
-    /// @param text string
-    /// @retval escaped string
-    static string escape(const string text);
-
-    /// @brief unescape special characters in a string
-    ///
-    /// @param text escapted string
-    /// @retval unescaped string
-    static string unescape(const string text);
-    /// @}
 
     /// @brief print the token to an output stream
     ///
@@ -166,6 +172,13 @@ class CToken {
     string _value;                  ///< token value
     int    _line;                   ///< input stream position (line)
     int    _char;                   ///< input stream position (character pos)
+
+
+    /// @brief escape special characters in a string
+    ///
+    /// @param text string
+    /// @retval escaped string
+    string escape(const string text);
 };
 
 /// @name CToken output operators
@@ -247,7 +260,7 @@ class CScanner {
     void NextToken(void);
 
     /// @brief store the current position of the input stream internally
-    void RecordStreamPosition(void);
+    void RecordStreamPosition();
 
     /// @brief return the previously recorded input stream position
     ///
@@ -289,26 +302,52 @@ class CScanner {
     /// @retval false character is not white space
     bool IsWhite(char c) const;
 
-    /// @brief check if a character is an alphabetic character (a-z, A-Z)
+    /// @brief check if a character is a digit
     ///
     /// @param c character
-    /// @retval true character is alphabetic
-    /// @retval false character is not alphabetic
-    bool IsAlpha(char c) const;
+    /// @retval true character is a digit
+    /// @retval false character is not a digit
+    bool IsDigit(char c) const;
 
-    /// @brief check if a character is an numeric character (0-9)
+    /// @brief check if a character is a letter
     ///
     /// @param c character
-    /// @retval true character is numeric
-    /// @retval false character is not numeric
-    bool IsNum(char c) const;
+    /// @retval true character is a letter
+    /// @retval false character is not a letter
+    bool IsLetter(char c) const;
 
-    /// @brief check if a character is a valid ID character
+    /// @brief check if a character is a letter or a digit
     ///
     /// @param c character
-    /// @retval true character is valid as an ID character
-    /// @retval false character is not valid in an ID
-    bool IsIDChar(char c) const;
+    /// @retval true character is a letter or a digit
+    /// @retval false character is neither letter or digit
+    bool IsLetterDigit(char c) const;
+
+    /// @brief check if a character is a AsciiChar
+    ///
+    /// @param c character
+    /// @retval true character is a AsciiChar
+    /// @retval false character is not a AsciiChar
+    bool IsAsciiChar(char c) const;
+
+    /// @brief check if a string is a valid character description
+    ///
+    /// @param s string
+    /// @retval true string is a valid character description
+    /// @retval false string is not a valid character description
+    bool IsValidChar(string s) const;
+
+    /// @brief check if a string is a valid string description
+    ///
+    /// @param s string
+    /// @retval true string is a valid string description
+    /// @retval false string is not a valid string description
+    bool IsValidString(string s) const;
+
+    /// @brief unescape all escape characters
+    ///
+    /// @param s string
+    string unescape(string s) const;
 
     /// @}
 
@@ -326,4 +365,4 @@ class CScanner {
 };
 
 
-#endif // __SnuPL_SCANNER_H__
+#endif // __SnuPL0_SCANNER_H__

@@ -230,11 +230,11 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
 
   n = term(s);
 
-  while (_scanner->Peek().GetType() == tPlusMinus) {
+  while (_scanner->Peek().GetType() == tTermOp) {
     CToken t;
     CAstExpression *l = n, *r;
 
-    Consume(tPlusMinus, &t);
+    Consume(tTermOp, &t);
 
     r = term(s);
 
@@ -256,11 +256,11 @@ CAstExpression* CParser::term(CAstScope *s)
 
   EToken tt = _scanner->Peek().GetType();
 
-  while ((tt == tMulDiv)) {
+  while (tt == tFactOp) {
     CToken t;
     CAstExpression *l = n, *r;
 
-    Consume(tMulDiv, &t);
+    Consume(tFactOp, &t);
 
     r = factor(s);
 
@@ -291,10 +291,10 @@ CAstExpression* CParser::factor(CAstScope *s)
       break;
 
     // factor ::= "(" expression ")"
-    case tLParens:
-      Consume(tLParens);
+    case tLBrak:
+      Consume(tLBrak);
       n = expression(s);
-      Consume(tRParens);
+      Consume(tRBrak);
       break;
 
     default:
