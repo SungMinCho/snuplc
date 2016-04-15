@@ -1381,8 +1381,7 @@ string CAstStringConstant::dotAttr(void) const
 {
   ostringstream out;
   // the string is already escaped, but dot requires double escaping
-  // out << " [label=\"\\\"" << CToken::escape(GetValueStr())
-  out << " [label=\"\\\"" << GetValueStr() // sungmin : needs to escape... TODO later
+  out << " [label=\"\\\"" << CToken::escape(GetValueStr())
       << "\\\"\",shape=ellipse]";
   return out.str();
 }
