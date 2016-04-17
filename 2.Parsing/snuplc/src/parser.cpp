@@ -325,9 +325,28 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 
       temp = new CAstStatIf(iftoken, cond, body, elsebody); 
     } else if(tt == tWhile) {
-      assert(false && "While TODO");
+      CToken whiletoken;
+      Consume(tWhile, &whiletoken);
+      Consume(tLBrak);
+      CAstExpression* cond = expression(s);
+      Consume(tRBrak);
+      Consume(tDo);
+      CAstStatement* body = statSequence(s);
+      Consume(tEnd);
+
+      temp = new CAstStatWhile(whiletoken, cond, body);
     } else if(tt == tReturn) {
-      assert(false && "Return TODO");
+      // FOLLOW(returnStatement) = { ";" } + FOLLOW(statSequence) ?
+      CToken returntoken;
+      Consume(tReturn, &returntoken);
+
+      CAstExpression* returnexpr = NULL;
+      if(_scanner->Peek().GetType() == tTermOp &&
+         _scanner->Peek().GetValue() != "||") {
+        returnexpr = expression(s);
+      }
+
+      temp = new CAstStatReturn(returntoken, s, returnexpr);
     } else if(tt == tIdent) {
       CToken id;
       Consume(tIdent, &id);
