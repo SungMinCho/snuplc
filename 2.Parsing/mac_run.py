@@ -55,9 +55,6 @@ def main():
           success += 1
           print("all same")
 
-        subprocess.Popen(["rm", "ref"]).communicate()
-        subprocess.Popen(["rm", "you"]).communicate()
-
   print()
   print("score", success, "/", total)
 
