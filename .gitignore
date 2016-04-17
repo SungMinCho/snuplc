@@ -15,3 +15,5 @@
 2.Parsing/snuplc/test_scanner
 
 2.Parsing/test/**/*.dot
+
+2.Parsing/result/
