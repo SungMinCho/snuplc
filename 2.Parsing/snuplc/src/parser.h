@@ -101,10 +101,14 @@ class CParser {
     void              varDeclSequence(CAstScope *s);
     void              varDeclaration(CAstScope *s);
 
+    void              formalParam(CAstScope *s);
+
     CAstModule*       module(void);
     CAstProcedure*    subroutineDecl(CAstScope *s);
 
     CAstStatement*    statSequence(CAstScope *s);
+
+    CAstStatement*    subroutineBody(CAstScope *s);
 
     CAstStatAssign*   assignment(CAstScope *s);
     CAstStatCall*     subroutineCall(CAstScope *s);

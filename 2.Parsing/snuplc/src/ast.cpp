@@ -126,6 +126,11 @@ CAstScope::~CAstScope(void)
   delete _cb;
 }
 
+void CAstScope::AddProcedure(CAstScope* proc)
+{
+  this->AddChild(proc);
+}
+
 const string CAstScope::GetName(void) const
 {
   return _name;

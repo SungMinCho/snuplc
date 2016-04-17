@@ -176,6 +176,10 @@ class CAstScope : public CAstNode {
 
     /// @name scope manipulation/querying
     /// @{
+    
+    /// @brief adds subroutine declaration
+    /// @param proc procedure to add
+    void AddProcedure(CAstScope* proc); // TODO : ugly?
 
     /// @brief return the type instance
     const string GetName(void) const;

@@ -197,6 +197,7 @@ CAstModule* CParser::module(void)
     EToken tt = _scanner->Peek().GetType();
     if(tt == tBegin) break;
     CAstProcedure* subroutine = subroutineDecl(m);
+    m->AddProcedure(subroutine);
   }
 
   Consume(tBegin);
@@ -215,6 +216,61 @@ CAstModule* CParser::module(void)
   m->SetStatementSequence(statseq);
 
   return m;
+}
+
+void CParser::formalParam(CAstScope *s) {
+  // formalParam ::= "(" [ varDeclSequence ] ")"
+  Consume(tLBrak);
+  varDeclSequence(s);
+  Consume(tRBrak);
+}
+
+CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
+  // subroutineDecl ::= (procedureDecl | functionDecl) subroutineBody ident ";"
+  // procedureDecl ::= "procedure" ident [ formalParam ] ";"
+  // functionDecl ::= "function" ident [ formalParam] ":" type ";"
+  
+  CToken procedureName;
+  CAstProcedure* proc;
+  EToken tt = _scanner->Peek().GetType();
+  if(tt == tProcedure) {
+    Consume(tProcedure);
+    Consume(tIdent, &procedureName);
+    proc = new CAstProcedure(procedureName, procedureName.GetValue(), 
+                             s, new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull())); 
+    if(_scanner->Peek().GetType() == tLBrak) formalParam(proc);
+    Consume(tSemicolon);
+  } else if(tt == tFunction) {
+    Consume(tFunction);
+    Consume(tIdent, &procedureName);
+    proc = new CAstProcedure(procedureName, procedureName.GetValue(),
+                             s, new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull())); // null for temporary
+    if(_scanner->Peek().GetType() == tLBrak) formalParam(proc);
+    Consume(tColon);
+    const CType* typ = type();
+    Consume(tSemicolon);
+    // TODO !!!! set return type of proc to be typ
+  } else {
+    Consume(tProcedure); // intention is to make error. this kind of indirect code should be avoided i think... fix later
+  }
+
+  CAstStatement* stat = subroutineBody(proc);
+  CToken endingName;
+  Consume(tIdent, &endingName);
+  assert(procedureName.GetValue() == endingName.GetValue() && "procedure should end with \"end\" procedurename");
+  Consume(tSemicolon);
+
+  proc->SetStatementSequence(stat);
+  return proc;
+}
+
+CAstStatement* CParser::subroutineBody(CAstScope *s) {
+  // subroutineBody ::= varDeclaration "begin" statSequence "end"
+  varDeclaration(s);
+  Consume(tBegin);
+  CAstStatement *stat = statSequence(s);
+  Consume(tEnd);
+  return stat;
 }
 
 CAstStatement* CParser::statSequence(CAstScope *s)
