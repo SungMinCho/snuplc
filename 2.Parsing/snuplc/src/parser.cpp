@@ -155,6 +155,11 @@ void CParser::varDecl(CAstScope* s) {
   }
   Consume(tColon);
   const CType* typ = type();
+
+  vector<CToken>::iterator iter;
+  for(iter = vars.begin(); iter != vars.end(); iter++) {
+    s->CreateVar(iter->GetValue(), typ); // mind we ignore the return value
+  }
 }
 
 void CParser::varDeclSequence(CAstScope* s) {
