@@ -2,6 +2,15 @@ import subprocess
 import os
 import glob
 import difflib
+import sys
+
+def hilite(string, color):
+  attr = []
+  if color == 'green':
+    attr.append('32')
+  elif color == 'red':
+    attr.append('31')
+  return '\x1b[%sm%s\x1b[0m' % (';'.join(attr), string)
 
 def main():
 
@@ -33,8 +42,17 @@ def main():
           diff = d.compare(reflines, youlines)
           cnt = 0
           for line in diff:
-            if line[0] == '-' or line[0] == '+':
-              print(line, end='')
+            if line[0] == '-':
+              if sys.stdout.isatty():
+                print(hilite(line, 'red'), end='')
+              else:
+                print(line, end='')
+              cnt += 1
+            elif line[0] == '+':
+              if sys.stdout.isatty():
+                print(hilite(line, 'green'), end='')
+              else:
+                print(line, end='')
               cnt += 1
 
         if cnt == 0:
