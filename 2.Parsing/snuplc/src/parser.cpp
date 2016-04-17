@@ -158,7 +158,7 @@ void CParser::varDecl(CAstScope* s) {
 
   vector<CToken>::iterator iter;
   for(iter = vars.begin(); iter != vars.end(); iter++) {
-    s->CreateVar(iter->GetValue(), typ); // mind we ignore the return value
+    s->GetSymbolTable()->AddSymbol(s->CreateVar(iter->GetValue(), typ));
   }
 }
 
@@ -196,6 +196,7 @@ CAstModule* CParser::module(void)
   while(true) {
     EToken tt = _scanner->Peek().GetType();
     if(tt == tBegin) break;
+    CAstProcedure* subroutine = subroutineDecl(m);
   }
 
   Consume(tBegin);
