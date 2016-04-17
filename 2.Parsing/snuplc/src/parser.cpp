@@ -175,6 +175,7 @@ void CParser::varDeclaration(CAstScope* s) {
 
   Consume(tVar);
   varDeclSequence(s);
+  Consume(tSemicolon);
 }
 
 CAstModule* CParser::module(void)
