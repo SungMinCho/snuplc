@@ -163,19 +163,24 @@ void CParser::varDecl(CAstScope* s) {
 }
 
 void CParser::varDeclSequence(CAstScope* s) {
+  // varDeclSequence ::= varDecl { ";" varDecl }
   while(true) {
     varDecl(s);
     if(_scanner->Peek().GetType() != tSemicolon) return;
-    Consume(tSemicolon); // TODO. midterm 4-C not a problem?
+    Consume(tSemicolon);
+    if(_scanner->Peek().GetType() == tBegin ||
+       _scanner->Peek().GetType() == tProcedure ||
+       _scanner->Peek().GetType() == tFunction ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
   }
 }
 
 void CParser::varDeclaration(CAstScope* s) {
+  // varDeclaration ::= [ "var" varDeclSequence ";" ]
   if(_scanner->Peek().GetType() != tVar) return;
 
   Consume(tVar);
   varDeclSequence(s);
-  Consume(tSemicolon);
+  //Consume(tSemicolon);    varDeclSequence eats this
 }
 
 CAstModule* CParser::module(void)
