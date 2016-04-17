@@ -110,12 +110,6 @@ class CParser {
 
     CAstStatement*    subroutineBody(CAstScope *s);
 
-    CAstStatAssign*   assignment(CAstScope *s);
-    CAstStatCall*     subroutineCall(CAstScope *s);
-    CAstStatIf*       ifStatement(CAstScope *s);
-    CAstStatWhile*    whileStatement(CAstScope *s);
-    CAstStatReturn*   returnStatement(CAstScope *s);
-
     CAstExpression*   expression(CAstScope *s);
     CAstExpression*   simpleexpr(CAstScope *s);
     CAstExpression*   term(CAstScope *s);

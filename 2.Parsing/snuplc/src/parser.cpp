@@ -283,60 +283,76 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 {
   //
   // statSequence ::= [ statement { ";" statement } ].
-  // statement ::= assignment.
-  // FIRST(statSequence) = { tNumber }
-  // FOLLOW(statSequence) = { tDot }
+  // old statement ::= assignment.
+  // statement ::= assignment | subroutineCall | ifStatement | whileStatement | returnStatement
+  // FIRST(statSequence) = { ident, ident, if, while, return }
+  // FOLLOW(statSequence) = { end, else, end }
   //
-  CAstStatement *head = NULL;
+  // assignment ::= ident { "[" expression "]" } ":=" expression
+  // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
+  // ifStatement ::= "if" "(" expression ")" "then" statSequence [ "else" statSequence ] "end"
+  // whileStatement ::= "while" "(" expression ")" "do" statSequence "end"
+  // returnStatement ::= "return" [ expression ]
+  
+  if(_scanner->Peek().GetType() == tEnd ||
+     _scanner->Peek().GetType() == tElse) return NULL;
 
-  EToken tt = _scanner->Peek().GetType();
-  if (!(tt == tDot)) {
-    CAstStatement *tail = NULL;
+  CAstStatement *stat = NULL;
+  CAstStatement *tail = NULL;
 
-    do {
-      CToken t;
-      EToken tt = _scanner->Peek().GetType();
-      CAstStatement *st = NULL;
+  while(true) {
+    EToken tt = _scanner->Peek().GetType();
+    if(tt == tEnd || tEnd == tElse) return stat;
 
-      switch (tt) {
-        // statement ::= assignment
-        case tNumber:
-          st = assignment(s);
-          break;
+    CAstStatement *temp;
+    // TODO : read one statement to temp
+    if(tt == tIf) {
+      CToken iftoken;
+      Consume(tIf, &iftoken);
+      Consume(tLBrak);
+      CAstExpression* cond = expression(s);
+      Consume(tRBrak);
+      Consume(tThen);
+      CAstStatement *body = statSequence(s);
+      CAstStatement *elsebody = NULL;
 
-        default:
-          SetError(_scanner->Peek(), "statement expected.");
-          break;
+      if(_scanner->Peek().GetType() == tElse) {
+        Consume(tElse);
+        elsebody = statSequence(s);
       }
 
-      assert(st != NULL);
-      if (head == NULL) head = st;
-      else tail->SetNext(st);
-      tail = st;
+      Consume(tEnd);
 
-      tt = _scanner->Peek().GetType();
-      if (tt == tDot) break;
-
-      Consume(tSemicolon);
-    } while (!_abort);
+      temp = new CAstStatIf(iftoken, cond, body, elsebody); 
+    } else if(tt == tWhile) {
+      assert(false && "While TODO");
+    } else if(tt == tReturn) {
+      assert(false && "Return TODO");
+    } else if(tt == tIdent) {
+      CToken id;
+      Consume(tIdent, &id);
+      EToken ttt = _scanner->Peek().GetType();
+      if(ttt == tLSqrBrak || ttt == tAssign) {
+        // assignment
+        assert(false && "Assignment TODO");
+      } else if(ttt == tLBrak) {
+        // subroutineCall
+        assert(false && "subroutineCall TODO");
+      } else {
+        SetError(_scanner->Peek(), "assignment or subroutineCall expected."); // TODO: not exactly the right error token. we ate the id.
+      }
+    } else {
+      SetError(_scanner->Peek(), "statement expected."); // same error msg as Egger's
+    }
+    
+    if(!stat) {
+      stat = tail = temp;
+    } else {
+      tail->SetNext(temp);
+      tail = temp;
+    }
   }
 
-  return head;
-}
-
-CAstStatAssign* CParser::assignment(CAstScope *s)
-{
-  //
-  // assignment ::= number ":=" expression.
-  //
-  CToken t;
-
-  CAstConstant *lhs = number();
-  Consume(tAssign, &t);
-
-  CAstExpression *rhs = expression(s);
-
-  return new CAstStatAssign(t, lhs, rhs);
 }
 
 CAstExpression* CParser::expression(CAstScope* s)
