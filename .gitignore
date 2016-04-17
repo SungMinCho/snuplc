@@ -14,4 +14,4 @@
 2.Parsing/snuplc/test_parser
 2.Parsing/snuplc/test_scanner
 
-.dot
+2.Parsing/test/**/*.dot
