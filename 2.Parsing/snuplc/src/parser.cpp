@@ -302,7 +302,7 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 
   while(true) {
     EToken tt = _scanner->Peek().GetType();
-    if(tt == tEnd || tEnd == tElse) return stat;
+    if(tt == tEnd || tt == tElse) return stat;
 
     CAstStatement *temp;
     // TODO : read one statement to temp
@@ -354,9 +354,49 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       if(ttt == tLSqrBrak || ttt == tAssign) {
         // assignment
         assert(false && "Assignment TODO");
+        
+        // read qualident ...
+        if(_scanner->Peek().GetType() == tLSqrBrak) {
+          assert(false && "qualident with array access not implemented yet");
+        }
+
+        /*CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), ?scope);
+        
+        Consume(tAssign);
+
+        CAstConstant* lhs = new CAstConstant(id, sym->GetDataType(), ?value);
+        CAstExpression* rhs = expression(s);
+
+        temp = new CAstStatAssign(id, lhs, rhs);*/
       } else if(ttt == tLBrak) {
         // subroutineCall
+        
         assert(false && "subroutineCall TODO");
+
+        /*
+        Consume(tLBrak);
+        vector<CAstExpression> args;
+
+        while(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") {
+          CAstExpression* arg = expression(s);
+          args.push_back(arg);
+          if(_scanner->Peek().GetType() != tComma) break;
+          Consume(tComma);
+        }
+        Consume(tRBrak);
+
+        const CType* returntype = s->GetSymbolTable()->FindSymbol(id.GetValue(), ?scope)->GetDataType();
+        CSymProc* symproc = new CSymProc(id.GetValue(), returntype);
+        vector<CAstExpression>::iterator iter;
+        int index = 0;
+        for(iter = args.begin(); iter != args.end(); iter++) {
+
+          symproc->AddParam(new CSymParam(index, ?name, iter->GetType()));
+          index++;
+        }
+        CAstFunctionCall* call = new CAstFunctionCall(id, symproc);
+        
+        temp = new CAstStatCall(id, call); */
       } else {
         SetError(_scanner->Peek(), "assignment or subroutineCall expected."); // TODO: not exactly the right error token. we ate the id.
       }
