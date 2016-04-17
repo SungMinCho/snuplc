@@ -87,6 +87,13 @@ class CParser {
     /// @retval false otherwise
     bool Consume(EToken type, CToken *token=NULL);
 
+    /// @brief consume an ident which is a keyword kwd
+    /// @param kwd expected keyword
+    /// @param token If not null, the consumed token is stored in 'token'
+    /// @retval true if a token has been consumed
+    /// @retval false otherwise
+    bool ConsumeKeyword(const string kwd, CToken *token=NULL);
+
 
     /// @brief initialize symbol table @a s with predefined procedures and
     ///        global variables
@@ -94,12 +101,19 @@ class CParser {
 
     /// @name methods for recursive-descent parsing
     /// @{
+    
+    void              varDeclaration(CAstScope *s);
 
     CAstModule*       module(void);
+    CAstProcedure*    subroutineDecl(CAstScope *s);
 
     CAstStatement*    statSequence(CAstScope *s);
 
     CAstStatAssign*   assignment(CAstScope *s);
+    CAstStatCall*     subroutineCall(CAstScope *s);
+    CAstStatIf*       ifStatement(CAstScope *s);
+    CAstStatWhile*    whileStatement(CAstScope *s);
+    CAstStatReturn*   returnStatement(CAstScope *s);
 
     CAstExpression*   expression(CAstScope *s);
     CAstExpression*   simpleexpr(CAstScope *s);

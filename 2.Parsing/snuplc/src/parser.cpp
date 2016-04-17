@@ -112,6 +112,27 @@ bool CParser::Consume(EToken type, CToken *token)
   return t.GetType() == type;
 }
 
+bool CParser::ConsumeKeyword(const string kwd, CToken *token)
+{
+  if (_abort) return false;
+
+  CToken t = _scanner->Get();
+
+  if(t.GetType() != tIdent) {
+    SetError(t, "expected '" + CToken::Name(tIdent) + "', got '" +
+        t.GetName() + "'");
+  }
+
+  if(t.GetValue() != kwd) {
+    SetError(t, "expected keyword'" + kwd + "', got '" +
+        t.GetValue() + "'");
+  }
+
+  if (token != NULL) *token = t;
+
+  return true;
+}
+
 void CParser::InitSymbolTable(CSymtab *s)
 {
   CTypeManager *tm = CTypeManager::Get();
@@ -122,7 +143,8 @@ void CParser::InitSymbolTable(CSymtab *s)
 CAstModule* CParser::module(void)
 {
   //
-  // module ::= statSequence  ".".
+  // old module ::= statSequence  ".".
+  // module ::= "module" ident ";"' varDeclaration { subroutineDecl } "begin" statSequence "end" idnet "."
   //
   CToken dummy;
   CAstModule *m = new CAstModule(dummy, "placeholder");
