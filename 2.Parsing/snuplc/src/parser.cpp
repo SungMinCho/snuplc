@@ -112,27 +112,6 @@ bool CParser::Consume(EToken type, CToken *token)
   return t.GetType() == type;
 }
 
-bool CParser::ConsumeKeyword(const string kwd, CToken *token)
-{
-  if (_abort) return false;
-
-  CToken t = _scanner->Get();
-
-  if(t.GetType() != tIdent) {
-    SetError(t, "expected '" + CToken::Name(tIdent) + "', got '" +
-        t.GetName() + "'");
-  }
-
-  if(t.GetValue() != kwd) {
-    SetError(t, "expected keyword'" + kwd + "', got '" +
-        t.GetValue() + "'");
-  }
-
-  if (token != NULL) *token = t;
-
-  return true;
-}
-
 void CParser::InitSymbolTable(CSymtab *s)
 {
   CTypeManager *tm = CTypeManager::Get();
@@ -140,17 +119,41 @@ void CParser::InitSymbolTable(CSymtab *s)
   // TODO: add predefined functions here
 }
 
+void CParser::varDeclaration(CAstScope* s) {
+}
+
 CAstModule* CParser::module(void)
 {
   //
   // old module ::= statSequence  ".".
-  // module ::= "module" ident ";"' varDeclaration { subroutineDecl } "begin" statSequence "end" idnet "."
+  // module ::= "module" ident ";"' varDeclaration { subroutineDecl } "begin" statSequence "end" ident "."
   //
-  CToken dummy;
-  CAstModule *m = new CAstModule(dummy, "placeholder");
-  CAstStatement *statseq = NULL;
+  Consume(tModule);
+  CToken moduleName;
+  Consume(tIdent, &moduleName);
 
+  // TODO. is it right to put moduleName for 1st parameter?
+  CAstModule *m = new CAstModule(moduleName, moduleName.GetValue());
+
+  Consume(tSemicolon);
+  varDeclaration(m);
+
+  while(true) {
+    EToken tt = _scanner->Peek().GetType();
+    if(tt == tBegin) break;
+  }
+
+  Consume(tBegin);
+
+  CAstStatement *statseq = NULL;
   statseq = statSequence(m);
+
+  Consume(tEnd);
+
+  CToken endingName;
+  Consume(tIdent, &endingName);
+  assert(moduleName.GetValue() == endingName.GetValue() && "module should end with \"end\" modulename");
+
   Consume(tDot);
 
   m->SetStatementSequence(statseq);
