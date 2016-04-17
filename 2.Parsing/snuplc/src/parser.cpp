@@ -119,7 +119,57 @@ void CParser::InitSymbolTable(CSymtab *s)
   // TODO: add predefined functions here
 }
 
+const CType* CParser::type() {
+  const CType* t;
+  CToken basetype;
+  Consume(tBaseType, &basetype);
+  if(basetype.GetValue() == "boolean") t = CTypeManager::Get()->GetBool();
+  else if(basetype.GetValue() == "char") t = CTypeManager::Get()->GetChar();
+  else t = CTypeManager::Get()->GetInt(); // ensured by my scanner design
+
+  while(true) {
+    if(_scanner->Peek().GetType() != tLSqrBrak) return t;
+    Consume(tLSqrBrak);
+    if(_scanner->Peek().GetType() != tRSqrBrak) {
+      CAstConstant* num = number();
+      Consume(tRSqrBrak);
+      t = CTypeManager::Get()->GetArray(num->GetValue(), t); // TODO : mind that num->GetValue long long to int...
+    } else {
+      Consume(tRSqrBrak);
+      t = CTypeManager::Get()->GetPointer(t);
+    }
+  }
+
+  return t;
+}
+
+void CParser::varDecl(CAstScope* s) {
+  // varDecl = ident { "," ident } ":" type
+  vector<CToken> vars;
+  while(true) {
+    CToken var;
+    Consume(tIdent, &var);
+    vars.push_back(var);
+    if(_scanner->Peek().GetType() == tColon) break;
+    Consume(tComma);
+  }
+  Consume(tColon);
+  const CType* typ = type();
+}
+
+void CParser::varDeclSequence(CAstScope* s) {
+  while(true) {
+    varDecl(s);
+    if(_scanner->Peek().GetType() != tSemicolon) return;
+    Consume(tSemicolon); // TODO. midterm 4-C not a problem?
+  }
+}
+
 void CParser::varDeclaration(CAstScope* s) {
+  if(_scanner->Peek().GetType() != tVar) return;
+
+  Consume(tVar);
+  varDeclSequence(s);
 }
 
 CAstModule* CParser::module(void)

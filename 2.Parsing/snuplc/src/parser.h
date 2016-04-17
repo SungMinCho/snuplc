@@ -95,6 +95,10 @@ class CParser {
     /// @name methods for recursive-descent parsing
     /// @{
     
+    const CType*      type(void);
+
+    void              varDecl(CAstScope *s);
+    void              varDeclSequence(CAstScope *s);
     void              varDeclaration(CAstScope *s);
 
     CAstModule*       module(void);
