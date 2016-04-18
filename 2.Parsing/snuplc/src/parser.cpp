@@ -608,13 +608,12 @@ CAstExpression* CParser::factor(CAstScope *s)
   if(tt == tNumber) {
     n = number();
   } else if(tt == tBoolean) {
-    // TODO
+    n = boolean();
   } else if(tt == tCharacter) {
-    // TODO
     Consume(tCharacter, &t);
     n = new CAstConstant(t, CTypeManager::Get()->GetChar(), (int)t.GetValue()[0]);
   } else if(tt == tString) {
-    // TODO
+    n = stringConstant(s);
   } else if(tt == tLBrak) {
     Consume(tLBrak);
     n = expression(s);
@@ -658,4 +657,28 @@ CAstConstant* CParser::number(void)
 
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }
+
+CAstConstant* CParser::boolean(void)
+{
+  // boolean ::= true | false
+  
+  CToken t;
+  Consume(tBoolean, &t);
+
+  long long v = 0;
+  if(t.GetValue() == "true") v = 1;
+
+  return new CAstConstant(t, CTypeManager::Get()->GetBool(), v);
+}
+
+CAstStringConstant* CParser::stringConstant(CAstScope* s)
+{
+  // string ::=
+  
+  CToken t;
+  Consume(tString, &t);
+
+  return new CAstStringConstant(t, t.GetValue(), s);
+}
+
 

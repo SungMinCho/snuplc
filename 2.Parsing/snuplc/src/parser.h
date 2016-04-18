@@ -119,6 +119,8 @@ class CParser {
     CAstExpression*   qualident(CAstScope *s, CToken id); // assume ident is already read and passed to us
 
     CAstConstant*     number(void);
+    CAstConstant*     boolean(void);
+    CAstStringConstant*   stringConstant(CAstScope* s);
 
     /// @}
 
