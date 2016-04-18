@@ -633,7 +633,7 @@ CAstExpression* CParser::factor(CAstScope *s)
     n = boolean();
   } else if(tt == tCharacter) {
     Consume(tCharacter, &t);
-    n = new CAstConstant(t, CTypeManager::Get()->GetChar(), (int)t.GetValue()[0]);
+    n = new CAstConstant(t, CTypeManager::Get()->GetChar(), (int)_scanner->unescape(t.GetValue())[0]);
   } else if(tt == tString) {
     n = stringConstant(s);
   } else if(tt == tLBrak) {
