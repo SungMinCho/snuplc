@@ -116,6 +116,7 @@ class CParser {
     CAstExpression*   factor(CAstScope *s);
 
     CAstFunctionCall* subroutineCall(CAstScope *s, CToken id); // assume ident is already read and passed to us
+    CAstExpression*   qualident(CAstScope *s, CToken id); // assume ident is already read and passed to us
 
     CAstConstant*     number(void);
 

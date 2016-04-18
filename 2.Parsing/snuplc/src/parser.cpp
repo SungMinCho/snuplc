@@ -387,15 +387,10 @@ CAstStatement* CParser::statSequence(CAstScope *s)
         // assignment
         
         // read qualident ...
-        if(_scanner->Peek().GetType() == tLSqrBrak) {
-          assert(false && "qualident with array access not implemented yet");
-        }
+        CAstExpression* lhs = qualident(s, id); 
 
-        const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue()); // TODO : scope?
-        
         Consume(tAssign);
 
-        CAstConstant* lhs = new CAstConstant(id, sym->GetDataType(), sym->GetOffset()); // TODO : GetOffset right?
         CAstExpression* rhs = expression(s);
 
         temp = new CAstStatAssign(id, lhs, rhs);
@@ -558,6 +553,33 @@ CAstExpression* CParser::term(CAstScope *s)
   return n;
 }
 
+CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
+  // qualident ::= ident { "[" expression "]" }
+  // ident is already read and given as id
+   
+  // later, i might replace below 2 lines with 1 line with just stGlobal as scope
+  const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
+  if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+
+  CAstExpression* n;
+  EToken ttt = _scanner->Peek().GetType();
+  if(ttt != tLSqrBrak) {
+    n = new CAstDesignator(id, sym);
+  } else {
+    CAstArrayDesignator* var = new CAstArrayDesignator(id, sym);
+    while(_scanner->Peek().GetType() == tLSqrBrak) {
+      Consume(tLSqrBrak);
+      CAstExpression* expr = expression(s);
+      var->AddIndex(expr);
+      Consume(tRSqrBrak);
+    }
+    var->IndicesComplete();
+    n = var;
+  }
+
+  return n;
+}
+
 CAstExpression* CParser::factor(CAstScope *s)
 {
   //
@@ -601,23 +623,7 @@ CAstExpression* CParser::factor(CAstScope *s)
       n = subroutineCall(s, id);
     } else {
       // qualident
-      // later, i might replace below 2 lines with 1 line with just stGlobal as scope
-      const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
-      if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
-
-      if(ttt == tLSqrBrak) {
-        n = new CAstDesignator(id, sym);
-      } else {
-        CAstArrayDesignator* var = new CAstArrayDesignator(id, sym);
-        while(_scanner->Peek().GetType() == tLSqrBrak) {
-          Consume(tLSqrBrak);
-          CAstExpression* expr = expression(s);
-          var->AddIndex(expr);
-          Consume(tRSqrBrak);
-        }
-        var->IndicesComplete();
-        n = var;
-      }
+      n = qualident(s, id);
     }
   }
 
