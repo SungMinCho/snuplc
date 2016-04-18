@@ -394,33 +394,24 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
   // ident is already read and given to us
-  
-  /*
-  Consume(tLBrak);
-  vector<CAstExpression> args;
+ 
+  // const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
+  // if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  // const CType* returntype = sym->GetDataType();
 
-  while(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") { // TODO wrong condition of expression
-    CAstExpression* arg = expression(s);
-    args.push_back(arg);
-    if(_scanner->Peek().GetType() != tComma) break;
-    Consume(tComma);
+  
+  CAstFunctionCall* func = new CAstFunctionCall(id, NULL); // TODO: NULL has to be some const CSymProc*
+  
+  Consume(tLBrak);
+  while(true) {
+    CAstExpression* expr = expression(s);
+    func->AddArg(expr);
+    if(_scanner->Peek().GetType() == tComma) Consume(tComma);
+    else break;
   }
   Consume(tRBrak);
-
-  const CType* returntype = s->GetSymbolTable()->FindSymbol(id.GetValue(), ?scope)->GetDataType();
-  CSymProc* symproc = new CSymProc(id.GetValue(), returntype);
-  vector<CAstExpression>::iterator iter;
-  int index = 0;
-  for(iter = args.begin(); iter != args.end(); iter++) {
-
-    symproc->AddParam(new CSymParam(index, ?name, iter->GetType()));
-    index++;
-  }
-  CAstFunctionCall* call = new CAstFunctionCall(id, symproc);
   
-  temp = new CAstStatCall(id, call); */
-  
-  return NULL;
+  return func;
 }
 
 CAstExpression* CParser::expression(CAstScope* s)
