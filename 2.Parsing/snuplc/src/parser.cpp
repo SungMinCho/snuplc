@@ -168,7 +168,7 @@ const CType* CParser::type() {
       t = CTypeManager::Get()->GetArray(num->GetValue(), t); // TODO : mind that num->GetValue long long to int...
     } else {
       Consume(tRSqrBrak);
-      t = CTypeManager::Get()->GetPointer(t);
+      t = CTypeManager::Get()->GetArray(CArrayType::OPEN,t);
     }
   }
 
