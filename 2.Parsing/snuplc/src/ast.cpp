@@ -811,13 +811,17 @@ const CType* CAstBinaryOp::GetType(void) const
   EOperation oper = GetOperation();
   if(oper == opEqual || oper == opLessEqual || oper == opLessThan ||
      oper == opBiggerThan || oper == opBiggerEqual || oper == opNotEqual) {
-    if(GetLeft()->GetType() == CTypeManager::Get()->GetInt() &&
-       GetRight()->GetType() == CTypeManager::Get()->GetInt())
-       return CTypeManager::Get()->GetBool();
-    return NULL;
+    if(oper == opEqual || oper == opNotEqual) {
+      if(GetLeft()->GetType() == GetRight()->GetType())
+        return CTypeManager::Get()->GetBool();
+      return NULL;
+    } else {
+      if(GetLeft()->GetType() == GetRight()->GetType() && !(GetLeft()->GetType()->IsBoolean()))
+        return CTypeManager::Get()->GetBool();
+      return NULL;
+    }
   } else if(oper == opOr || oper == opAnd) {
-    if(GetLeft()->GetType() == CTypeManager::Get()->GetBool() &&
-       GetRight()->GetType() == CTypeManager::Get()->GetBool())
+    if(GetLeft()->GetType()->IsBoolean() && GetRight()->GetType()->IsBoolean())
        return CTypeManager::Get()->GetBool();
     return NULL;
   } else {
