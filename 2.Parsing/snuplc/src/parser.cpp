@@ -45,6 +45,8 @@
 #include "parser.h"
 using namespace std;
 
+#define DEBUG(s) s
+
 
 //------------------------------------------------------------------------------
 // CParser
@@ -413,7 +415,10 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       tail = temp;
     }
 
-    if(_scanner->Peek().GetType() == tSemicolon) Consume(tSemicolon);
+    if(_scanner->Peek().GetType() == tSemicolon) {
+      Consume(tSemicolon);
+      tt = _scanner->Peek().GetType();
+    }
     else return stat;
   }
 
@@ -443,6 +448,7 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
 
 CAstExpression* CParser::expression(CAstScope* s)
 {
+  DEBUG(cout << "expression on " << _scanner->Peek() << endl;)
   //
   // expression ::= simpleexpr [ relOp simpleexpression ].
   // simpleexpr ::= ["+"|"-"] term {termOp term}
@@ -464,6 +470,10 @@ CAstExpression* CParser::expression(CAstScope* s)
 
     if (t.GetValue() == "=")       relop = opEqual;
     else if (t.GetValue() == "#")  relop = opNotEqual;
+    else if (t.GetValue() == "<")  relop = opLessThan;
+    else if (t.GetValue() == "<=") relop = opLessEqual;
+    else if (t.GetValue() == ">")  relop = opBiggerThan;
+    else if (t.GetValue() == ">=") relop = opBiggerEqual;
     else SetError(t, "invalid relation.");
 
     return new CAstBinaryOp(t, relop, left, right);
@@ -473,7 +483,8 @@ CAstExpression* CParser::expression(CAstScope* s)
 }
 
 CAstExpression* CParser::simpleexpr(CAstScope *s)
-{
+{ 
+  DEBUG(cout << "simpleexpr on " << _scanner->Peek() << endl;)
   //
   // simpleexpr ::= term { termOp term }.
   //
@@ -531,6 +542,7 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
 
 CAstExpression* CParser::term(CAstScope *s)
 {
+  DEBUG(cout << "term on " << _scanner->Peek() << endl;)
   //
   // term ::= factor { ("*"|"/") factor }.
   //
@@ -564,6 +576,7 @@ CAstExpression* CParser::term(CAstScope *s)
 }
 
 CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
+  DEBUG(cout << "qualident on " << _scanner->Peek() << endl;)
   // qualident ::= ident { "[" expression "]" }
   // ident is already read and given as id
    
@@ -592,6 +605,7 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
 
 CAstExpression* CParser::factor(CAstScope *s)
 {
+  DEBUG(cout << "factor on " << _scanner->Peek() << endl;)
   //
   // factor ::= number | "(" expression ")"
   //
