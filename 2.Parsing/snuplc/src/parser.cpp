@@ -45,7 +45,7 @@
 #include "parser.h"
 using namespace std;
 
-#define DEBUG(s) s
+#define DEBUG(s)
 
 
 //------------------------------------------------------------------------------
@@ -175,7 +175,7 @@ const CType* CParser::type() {
   return t;
 }
 
-void CParser::varDecl(CAstScope* s) {
+void CParser::varDecl(CAstScope* s, CSymProc* symproc) {
   // varDecl = ident { "," ident } ":" type
   vector<CToken> vars;
   while(true) {
@@ -189,15 +189,19 @@ void CParser::varDecl(CAstScope* s) {
   const CType* typ = type();
 
   vector<CToken>::iterator iter;
+  int index = 0;
   for(iter = vars.begin(); iter != vars.end(); iter++) {
     s->GetSymbolTable()->AddSymbol(s->CreateVar(iter->GetValue(), typ));
+    if(symproc) {
+      symproc->AddParam(new CSymParam(index, iter->GetValue(), typ));
+    }
   }
 }
 
-void CParser::varDeclSequence(CAstScope* s) {
+void CParser::varDeclSequence(CAstScope* s, CSymProc *symproc) {
   // varDeclSequence ::= varDecl { ";" varDecl }
   while(true) {
-    varDecl(s);
+    varDecl(s, symproc);
     if(_scanner->Peek().GetType() != tSemicolon) return;
     Consume(tSemicolon);
     if(_scanner->Peek().GetType() == tBegin ||
@@ -258,10 +262,10 @@ CAstModule* CParser::module(void)
   return m;
 }
 
-void CParser::formalParam(CAstScope *s) {
+void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
   // formalParam ::= "(" [ varDeclSequence ] ")"
   Consume(tLBrak);
-  varDeclSequence(s);
+  varDeclSequence(s, symproc);
   Consume(tRBrak);
 }
 
@@ -276,20 +280,20 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   if(tt == tProcedure) {
     Consume(tProcedure);
     Consume(tIdent, &procedureName);
-    proc = new CAstProcedure(procedureName, procedureName.GetValue(), 
-                             s, new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull())); 
-    if(_scanner->Peek().GetType() == tLBrak) formalParam(proc);
+    CSymProc *symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
+    proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
+    if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
     Consume(tSemicolon);
   } else if(tt == tFunction) {
     Consume(tFunction);
     Consume(tIdent, &procedureName);
-    proc = new CAstProcedure(procedureName, procedureName.GetValue(),
-                             s, new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull())); // null for temporary
-    if(_scanner->Peek().GetType() == tLBrak) formalParam(proc);
+    CSymProc *symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
+    proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
+    if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
     Consume(tColon);
     const CType* typ = type();
+    symproc->SetDataType(typ);
     Consume(tSemicolon);
-    // TODO !!!! set return type of proc to be typ
   } else {
     Consume(tProcedure); // intention is to make error. this kind of indirect code should be avoided i think... fix later
   }

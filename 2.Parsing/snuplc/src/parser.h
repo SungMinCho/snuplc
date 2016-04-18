@@ -97,11 +97,11 @@ class CParser {
     
     const CType*      type(void);
 
-    void              varDecl(CAstScope *s);
-    void              varDeclSequence(CAstScope *s);
+    void              varDecl(CAstScope *s, CSymProc *symproc = NULL);
+    void              varDeclSequence(CAstScope *s, CSymProc *symproc = NULL);
     void              varDeclaration(CAstScope *s);
 
-    void              formalParam(CAstScope *s);
+    void              formalParam(CAstScope *s, CSymProc *symproc = NULL);
 
     CAstModule*       module(void);
     CAstProcedure*    subroutineDecl(CAstScope *s);
