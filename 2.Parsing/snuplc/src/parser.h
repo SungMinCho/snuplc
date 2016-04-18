@@ -95,11 +95,11 @@ class CParser {
     /// @name methods for recursive-descent parsing
     /// @{
     
-    const CType*      type(void);
+    const CType*      type(bool isArgument);
 
-    void              varDecl(CAstScope *s, CSymProc *symproc = NULL);
-    void              varDeclSequence(CAstScope *s, CSymProc *symproc = NULL);
-    void              varDeclaration(CAstScope *s);
+    void              varDecl(CAstScope *s, bool isGlobal=false, CSymProc *symproc = NULL);
+    void              varDeclSequence(CAstScope *s, bool isGlobal=false, CSymProc *symproc = NULL);
+    void              varDeclaration(CAstScope *s, bool isGlobal=false);
 
     void              formalParam(CAstScope *s, CSymProc *symproc = NULL);
 

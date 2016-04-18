@@ -151,7 +151,7 @@ void CParser::InitSymbolTable(CSymtab *s)
   s->AddSymbol(WriteStr);
 }
 
-const CType* CParser::type() {
+const CType* CParser::type(bool isArgument) {
   const CType* t;
   CToken basetype;
   Consume(tBaseType, &basetype);
@@ -160,7 +160,14 @@ const CType* CParser::type() {
   else t = CTypeManager::Get()->GetInt(); // ensured by my scanner design
 
   while(true) {
-    if(_scanner->Peek().GetType() != tLSqrBrak) return t;
+    if(_scanner->Peek().GetType() != tLSqrBrak) {
+      if(isArgument &&  t->IsArray()) {
+        //const CArrayType *at = dynamic_cast<const CArrayType*>(t);
+        //t = CTypeManager::Get()->GetPointer(at->GetInnerType());
+        t = CTypeManager::Get()->GetPointer(t); // TODO : why this works?
+      }
+      return t;
+    }
     Consume(tLSqrBrak);
     if(_scanner->Peek().GetType() != tRSqrBrak) {
       CAstConstant* num = number();
@@ -172,10 +179,11 @@ const CType* CParser::type() {
     }
   }
 
+
   return t;
 }
 
-void CParser::varDecl(CAstScope* s, CSymProc* symproc) {
+void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
   // varDecl = ident { "," ident } ":" type
   vector<CToken> vars;
   while(true) {
@@ -186,23 +194,32 @@ void CParser::varDecl(CAstScope* s, CSymProc* symproc) {
     Consume(tComma);
   }
   Consume(tColon);
-  const CType* typ = type();
+  const CType* typ = type(symproc != NULL); // TODO : mind that assume symproc != NULL -> varDecl() is called for argument
 
   vector<CToken>::iterator iter;
   int index = 0;
   for(iter = vars.begin(); iter != vars.end(); iter++) {
-    s->GetSymbolTable()->AddSymbol(s->CreateVar(iter->GetValue(), typ));
+    CSymbol *sym;
+    if(isGlobal) { // symbol is global
+      sym = new CSymGlobal(iter->GetValue(), typ);
+    } else if(symproc)  { // symbol is param
+      sym = new CSymParam(index, iter->GetValue(), typ);
+    } else { //symbol is local
+      sym = new CSymLocal(iter->GetValue(), typ);
+    }
+    
+    s->GetSymbolTable()->AddSymbol(sym);
     if(symproc) {
       symproc->AddParam(new CSymParam(index, iter->GetValue(), typ));
-      index++;
     }
+    index++;
   }
 }
 
-void CParser::varDeclSequence(CAstScope* s, CSymProc *symproc) {
+void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc) {
   // varDeclSequence ::= varDecl { ";" varDecl }
   while(true) {
-    varDecl(s, symproc);
+    varDecl(s, isGlobal, symproc);
     if(_scanner->Peek().GetType() != tSemicolon) return;
     Consume(tSemicolon);
     if(_scanner->Peek().GetType() == tBegin ||
@@ -211,12 +228,12 @@ void CParser::varDeclSequence(CAstScope* s, CSymProc *symproc) {
   }
 }
 
-void CParser::varDeclaration(CAstScope* s) {
+void CParser::varDeclaration(CAstScope* s, bool isGlobal) {
   // varDeclaration ::= [ "var" varDeclSequence ";" ]
   if(_scanner->Peek().GetType() != tVar) return;
 
   Consume(tVar);
-  varDeclSequence(s);
+  varDeclSequence(s, isGlobal);
   //Consume(tSemicolon);    varDeclSequence eats this
 }
 
@@ -226,23 +243,24 @@ CAstModule* CParser::module(void)
   // old module ::= statSequence  ".".
   // module ::= "module" ident ";"' varDeclaration { subroutineDecl } "begin" statSequence "end" ident "."
   //
-  Consume(tModule);
+  CToken moduleToken;
+  Consume(tModule, &moduleToken);
   CToken moduleName;
   Consume(tIdent, &moduleName);
 
   // TODO. is it right to put moduleName for 1st parameter?
-  CAstModule *m = new CAstModule(moduleName, moduleName.GetValue());
+  CAstModule *m = new CAstModule(moduleToken, moduleName.GetValue());
 
   InitSymbolTable(m->GetSymbolTable());
 
   Consume(tSemicolon);
-  varDeclaration(m);
+  varDeclaration(m, true);
 
   while(true) {
     EToken tt = _scanner->Peek().GetType();
     if(tt == tBegin) break;
     CAstProcedure* subroutine = subroutineDecl(m);
-    m->AddProcedure(subroutine);
+    //m->AddProcedure(subroutine);
   }
 
   Consume(tBegin);
@@ -266,7 +284,7 @@ CAstModule* CParser::module(void)
 void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
   // formalParam ::= "(" [ varDeclSequence ] ")"
   Consume(tLBrak);
-  varDeclSequence(s, symproc);
+  varDeclSequence(s, false, symproc);
   Consume(tRBrak);
 }
 
@@ -293,7 +311,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
     Consume(tColon);
-    const CType* typ = type();
+    const CType* typ = type(true);
     symproc->SetDataType(typ);
     Consume(tSemicolon);
   } else {
@@ -700,7 +718,8 @@ CAstStringConstant* CParser::stringConstant(CAstScope* s)
   CToken t;
   Consume(tString, &t);
 
-  return new CAstStringConstant(t, _scanner->unescape(t.GetValue()), s);
+//  return new CAstStringConstant(t, _scanner->unescape(t.GetValue()), s);
+  return new CAstStringConstant(t, t.GetValue(), s);
 }
 
 
