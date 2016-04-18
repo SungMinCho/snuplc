@@ -194,6 +194,7 @@ void CParser::varDecl(CAstScope* s, CSymProc* symproc) {
     s->GetSymbolTable()->AddSymbol(s->CreateVar(iter->GetValue(), typ));
     if(symproc) {
       symproc->AddParam(new CSymParam(index, iter->GetValue(), typ));
+      index++;
     }
   }
 }
@@ -276,18 +277,19 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   
   CToken procedureName;
   CAstProcedure* proc;
+  CSymProc *symproc;
   EToken tt = _scanner->Peek().GetType();
   if(tt == tProcedure) {
     Consume(tProcedure);
     Consume(tIdent, &procedureName);
-    CSymProc *symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
+    symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
     Consume(tSemicolon);
   } else if(tt == tFunction) {
     Consume(tFunction);
     Consume(tIdent, &procedureName);
-    CSymProc *symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
+    symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
     Consume(tColon);
@@ -297,6 +299,8 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   } else {
     Consume(tProcedure); // intention is to make error. this kind of indirect code should be avoided i think... fix later
   }
+
+  s->GetSymbolTable()->AddSymbol(symproc);
 
   CAstStatement* stat = subroutineBody(proc);
   CToken endingName;
