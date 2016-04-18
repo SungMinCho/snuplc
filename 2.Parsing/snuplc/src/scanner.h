@@ -255,7 +255,7 @@ class CScanner {
     /// @brief unescape all escape characters
     ///
     /// @param s string
-    string unescape(string s) const;
+    static string unescape(string s);
 
   private:
     /// @brief initialize list of reserved keywords

@@ -112,6 +112,7 @@ bool CParser::Consume(EToken type, CToken *token)
 
   if (token != NULL) *token = t;
 
+  DEBUG(cout << "before consume returns" << endl;)
   return t.GetType() == type;
 }
 
@@ -483,12 +484,15 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   Consume(tLBrak);
   while(_scanner->Peek().GetType() != tRBrak) {
     CAstExpression* expr = expression(s);
+    DEBUG(cout << "after expression returns to subroutineCall" << endl;)
+    DEBUG(if(expr->GetType() == NULL) cout << "expr's type is NULL" << endl;)
     if(expr->GetType()->IsArray()) {
       CAstSpecialOp* derefer = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL); 
       func->AddArg(derefer);
     } else {
       func->AddArg(expr);
     }
+    DEBUG(cout << "after adding argument to func in subroutineCall" << endl;)
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
     else break;
   }
@@ -514,6 +518,7 @@ CAstExpression* CParser::expression(CAstScope* s)
   CAstExpression *left = NULL, *right = NULL;
 
   left = simpleexpr(s);
+  DEBUG(cout << "after left = simpleexpr() in expression()" << endl;)
 
   if (_scanner->Peek().GetType() == tRelOp) {
     Consume(tRelOp, &t);
@@ -529,6 +534,7 @@ CAstExpression* CParser::expression(CAstScope* s)
 
     return new CAstBinaryOp(t, relop, left, right);
   } else {
+    DEBUG(cout << "right before expression returns" << endl;)
     return left;
   }
 }
@@ -561,6 +567,7 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   CAstExpression *n = NULL;
 
   n = term(s);
+  DEBUG(cout << "after term returns to simplexpr" << endl;)
   if(unary) {
     if(CAstConstant *constant = dynamic_cast<CAstConstant*>(n)) {
       if(unaryOp == opNeg) {
@@ -588,6 +595,7 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
     n = new CAstBinaryOp(t, op, l, r);
   }
 
+  DEBUG(cout << "right before simpleexpr returns" << endl;)
   return n;
 }
 
@@ -602,10 +610,12 @@ CAstExpression* CParser::term(CAstScope *s)
   CAstExpression *n = NULL;
 
   n = factor(s);
+  DEBUG(cout << "after factor returns to term" << endl;)
 
   EToken tt = _scanner->Peek().GetType();
 
   while (tt == tFactOp) {
+    DEBUG(cout << "found factop in term" << endl;)
     CToken t;
     CAstExpression *l = n, *r;
     EOperation op;
@@ -682,6 +692,8 @@ CAstExpression* CParser::factor(CAstScope *s)
     n = new CAstConstant(t, CTypeManager::Get()->GetChar(), (int)_scanner->unescape(t.GetValue())[0]);
   } else if(tt == tString) {
     n = stringConstant(s);
+    DEBUG(cout << "after n = stringConstant(s)" << endl;)
+    DEBUG(if(n->GetType() == NULL) cout << "n's type is NULL" << endl;)
   } else if(tt == tLBrak) {
     Consume(tLBrak);
     n = expression(s);

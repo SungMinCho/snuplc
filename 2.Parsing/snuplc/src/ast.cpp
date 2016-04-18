@@ -1376,8 +1376,7 @@ CAstStringConstant::CAstStringConstant(CToken t, const string value,
 {
   CTypeManager *tm = CTypeManager::Get();
 
-  /// sungmin : i removed unescape because my scanner unescapes already
-  _type = tm->GetArray(strlen(value.c_str())+1,
+  _type = tm->GetArray(strlen(CScanner::unescape(value).c_str())+1,
                        tm->GetChar());
   _value = new CDataInitString(value);
 
@@ -1406,7 +1405,7 @@ bool CAstStringConstant::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstStringConstant::GetType(void) const
 {
-  return NULL;
+  return _type;
 }
 
 ostream& CAstStringConstant::print(ostream &out, int indent) const

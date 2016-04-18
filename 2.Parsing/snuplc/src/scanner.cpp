@@ -591,7 +591,7 @@ bool CScanner::IsValidString(string s) const
   return true;
 } 
 
-string CScanner::unescape(string s) const
+string CScanner::unescape(string s)
 {
   string res;
   char* c = (char*) s.c_str();
