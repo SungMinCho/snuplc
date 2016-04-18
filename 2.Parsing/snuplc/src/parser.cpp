@@ -593,7 +593,32 @@ CAstExpression* CParser::factor(CAstScope *s)
     n = factor(s);
     n = new CAstUnaryOp(nottoken, opNot, n);
   } else if(tt == tIdent) {
-    // TODO. qualident or subroutineCall
+    CToken id;
+    Consume(tIdent, &id);
+    EToken ttt = _scanner->Peek().GetType();
+    if(ttt == tLBrak) {
+      // subroutine call
+      n = subroutineCall(s, id);
+    } else {
+      // qualident
+      // later, i might replace below 2 lines with 1 line with just stGlobal as scope
+      const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
+      if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+
+      if(ttt == tLSqrBrak) {
+        n = new CAstDesignator(id, sym);
+      } else {
+        CAstArrayDesignator* var = new CAstArrayDesignator(id, sym);
+        while(_scanner->Peek().GetType() == tLSqrBrak) {
+          Consume(tLSqrBrak);
+          CAstExpression* expr = expression(s);
+          var->AddIndex(expr);
+          Consume(tRSqrBrak);
+        }
+        var->IndicesComplete();
+        n = var;
+      }
+    }
   }
 
   return n;
