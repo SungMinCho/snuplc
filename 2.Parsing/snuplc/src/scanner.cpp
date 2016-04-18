@@ -172,7 +172,7 @@ CToken::CToken()
 CToken::CToken(int line, int charpos, EToken type, const string value)
 {
   _type = type;
-  _value = escape(value);
+  _value = value;
   _line = line;
   _char = charpos;
 }
