@@ -252,6 +252,11 @@ class CScanner {
     /// @retval character position
     int GetCharPosition() const { return _char; };
 
+    /// @brief unescape all escape characters
+    ///
+    /// @param s string
+    string unescape(string s) const;
+
   private:
     /// @brief initialize list of reserved keywords
     void InitKeywords(void);
@@ -343,11 +348,6 @@ class CScanner {
     /// @retval true string is a valid string description
     /// @retval false string is not a valid string description
     bool IsValidString(string s) const;
-
-    /// @brief unescape all escape characters
-    ///
-    /// @param s string
-    string unescape(string s) const;
 
     /// @}
 
