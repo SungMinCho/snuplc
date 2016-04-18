@@ -138,7 +138,7 @@ void CParser::InitSymbolTable(CSymtab *s)
 
   WriteStr = new CSymProc("WriteStr", tm->GetNull());
   // TODO : second tm->GetPointer should be tm->GetArray but i don't know the size of the ary
-  WriteStr->AddParam(new CSymParam(0, "s", tm->GetPointer(tm->GetPointer(tm->GetChar())))); 
+  WriteStr->AddParam(new CSymParam(0, "s", tm->GetPointer(tm->GetArray(CArrayType::OPEN, tm->GetChar())))); 
 
   s->AddSymbol(DIM);
   s->AddSymbol(DOFS);
