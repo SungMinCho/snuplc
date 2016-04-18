@@ -226,6 +226,8 @@ CAstModule* CParser::module(void)
   // TODO. is it right to put moduleName for 1st parameter?
   CAstModule *m = new CAstModule(moduleName, moduleName.GetValue());
 
+  InitSymbolTable(m->GetSymbolTable());
+
   Consume(tSemicolon);
   varDeclaration(m);
 
