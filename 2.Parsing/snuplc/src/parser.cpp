@@ -700,7 +700,7 @@ CAstStringConstant* CParser::stringConstant(CAstScope* s)
   CToken t;
   Consume(tString, &t);
 
-  return new CAstStringConstant(t, t.GetValue(), s);
+  return new CAstStringConstant(t, _scanner->unescape(t.GetValue()), s);
 }
 
 
