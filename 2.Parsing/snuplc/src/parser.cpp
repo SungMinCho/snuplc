@@ -375,6 +375,7 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 
       CAstExpression* returnexpr = NULL;
       if(true) { // TODO : when to read expression?
+        assert(false && "condition for reading returnexpr not implemented yet");
         returnexpr = expression(s);
       }
 
@@ -429,7 +430,7 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   CAstFunctionCall* func = new CAstFunctionCall(id, symproc); // TODO: NULL has to be some const CSymProc*
   
   Consume(tLBrak);
-  while(true) {
+  while(_scanner->Peek().GetType() != tRBrak) {
     CAstExpression* expr = expression(s);
     func->AddArg(expr);
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
