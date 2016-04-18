@@ -117,6 +117,36 @@ void CParser::InitSymbolTable(CSymtab *s)
   CTypeManager *tm = CTypeManager::Get();
 
   // TODO: add predefined functions here
+  CSymProc *DIM, *DOFS, *ReadInt, *WriteChar, *WriteInt, *WriteLn, *WriteStr;
+
+  DIM = new CSymProc("DIM", tm->GetInt());
+  DIM->AddParam(new CSymParam(0, "arg0", tm->GetPointer(tm->GetNull()))); // TODO : what is argument name? same TODO for below
+  DIM->AddParam(new CSymParam(1, "arg1", tm->GetInt()));
+
+  DOFS = new CSymProc("DOFS", tm->GetInt());
+  DOFS->AddParam(new CSymParam(0, "arg0", tm->GetPointer(tm->GetNull())));
+
+  ReadInt = new CSymProc("ReadInt", tm->GetInt());
+
+  WriteChar = new CSymProc("WriteChar", tm->GetNull());
+  WriteChar->AddParam(new CSymParam(0, "c", tm->GetChar()));
+
+  WriteInt = new CSymProc("WriteInt", tm->GetNull());
+  WriteInt->AddParam(new CSymParam(0, "i", tm->GetInt()));
+
+  WriteLn = new CSymProc("WriteLn", tm->GetNull());
+
+  WriteStr = new CSymProc("WriteStr", tm->GetNull());
+  // TODO : second tm->GetPointer should be tm->GetArray but i don't know the size of the ary
+  WriteStr->AddParam(new CSymParam(0, "s", tm->GetPointer(tm->GetPointer(tm->GetChar())))); 
+
+  s->AddSymbol(DIM);
+  s->AddSymbol(DOFS);
+  s->AddSymbol(ReadInt);
+  s->AddSymbol(WriteChar);
+  s->AddSymbol(WriteInt);
+  s->AddSymbol(WriteLn);
+  s->AddSymbol(WriteStr);
 }
 
 const CType* CParser::type() {
@@ -395,12 +425,11 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
   // ident is already read and given to us
  
-  // const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
-  // if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
-  // const CType* returntype = sym->GetDataType();
-
+  const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
+  if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  const CSymProc *symproc = dynamic_cast<const CSymProc*>(sym);
   
-  CAstFunctionCall* func = new CAstFunctionCall(id, NULL); // TODO: NULL has to be some const CSymProc*
+  CAstFunctionCall* func = new CAstFunctionCall(id, symproc); // TODO: NULL has to be some const CSymProc*
   
   Consume(tLBrak);
   while(true) {
