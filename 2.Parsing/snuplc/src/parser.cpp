@@ -450,6 +450,15 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 
 }
 
+const CType* CParser::DereferedType(const CType* typ) {
+  if(const CArrayType* artyp = dynamic_cast<const CArrayType*>(typ)) {
+    // TODO : may have to get inner type THEN pointer
+    return CTypeManager::Get()->GetPointer(typ);
+  } else {
+    return typ;
+  }
+}
+
 CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
   // ident is already read and given to us
@@ -457,12 +466,20 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
   if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
   const CSymProc *symproc = dynamic_cast<const CSymProc*>(sym);
+  CSymProc *derefered_symproc = new CSymProc(symproc->GetName(), symproc->GetDataType());
+
+  for(int i = 0; i < symproc->GetNParams(); i++) {
+    const CSymParam *param = symproc->GetParam(i);
+    CSymParam *derefered_param = new CSymParam(i, param->GetName(), DereferedType(param->GetDataType()));
+    derefered_symproc->AddParam(derefered_param);
+  }
   
   CAstFunctionCall* func = new CAstFunctionCall(id, symproc); // TODO: NULL has to be some const CSymProc*
   
   Consume(tLBrak);
   while(_scanner->Peek().GetType() != tRBrak) {
     CAstExpression* expr = expression(s);
+    CAstSpecialOp* derefer = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL); 
     func->AddArg(expr);
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
     else break;
@@ -616,13 +633,16 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
     n = new CAstDesignator(id, sym);
   } else {
     CAstArrayDesignator* var = new CAstArrayDesignator(id, sym);
+    if(var->GetType() == NULL) cout << "var type NULL create" << endl;
     while(_scanner->Peek().GetType() == tLSqrBrak) {
       Consume(tLSqrBrak);
       CAstExpression* expr = expression(s);
       var->AddIndex(expr);
       Consume(tRSqrBrak);
     }
+    if(var->GetType() == NULL) cout << "var type NULL before" << endl;
     var->IndicesComplete();
+    if(var->GetType() == NULL) cout << "var type NULL after" << endl;
     n = var;
   }
 

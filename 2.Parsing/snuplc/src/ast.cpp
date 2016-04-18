@@ -1203,7 +1203,19 @@ bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstArrayDesignator::GetType(void) const
 {
-  return NULL;
+  const CSymbol *sym = GetSymbol();
+  const CType *typ = sym->GetDataType();
+
+  int i = GetNIndices();
+  while(i > 0) {
+    if(const CArrayType *artyp = dynamic_cast<const CArrayType *>(typ)) {
+      typ = artyp->GetInnerType();
+    } else if(const CPointerType *ptyp = dynamic_cast<const CPointerType *>(typ)) {
+      typ = ptyp->GetBaseType();
+    }
+    i--;
+  }
+  return typ;
 }
 
 ostream& CAstArrayDesignator::print(ostream &out, int indent) const
