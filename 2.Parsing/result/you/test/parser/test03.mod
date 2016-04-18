@@ -1,5 +1,5 @@
 parsing 'test/parser/test03.mod'...
-parse error : at 17:1 : statement expected.
+parse error : at 22:5 : procedure/function identifier mismatch ('foo' != 'foox').
 
 
 Done.
