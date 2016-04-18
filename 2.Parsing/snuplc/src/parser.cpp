@@ -302,12 +302,11 @@ CAstStatement* CParser::statSequence(CAstScope *s)
   CAstStatement *stat = NULL;
   CAstStatement *tail = NULL;
 
-  while(true) {
-    EToken tt = _scanner->Peek().GetType();
-    if(tt == tEnd || tt == tElse) return stat;
+  EToken tt = _scanner->Peek().GetType();
+  if(tt == tEnd || tt == tElse) return stat;
 
+  while(true) {
     CAstStatement *temp;
-    // TODO : read one statement to temp
     if(tt == tIf) {
       CToken iftoken;
       Consume(tIf, &iftoken);
@@ -411,6 +410,9 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       tail->SetNext(temp);
       tail = temp;
     }
+
+    if(_scanner->Peek().GetType() == tSemicolon) Consume(tSemicolon);
+    else return stat;
   }
 
 }
