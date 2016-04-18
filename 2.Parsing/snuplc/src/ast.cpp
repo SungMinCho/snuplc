@@ -810,10 +810,22 @@ const CType* CAstBinaryOp::GetType(void) const
 {
   EOperation oper = GetOperation();
   if(oper == opEqual || oper == opLessEqual || oper == opLessThan ||
-     oper == opBiggerThan || oper == opBiggerEqual || oper == opNotEqual)
-    return CTypeManager::Get()->GetBool();
-  
-  return CTypeManager::Get()->GetInt();
+     oper == opBiggerThan || oper == opBiggerEqual || oper == opNotEqual) {
+    if(GetLeft()->GetType() == CTypeManager::Get()->GetInt() &&
+       GetRight()->GetType() == CTypeManager::Get()->GetInt())
+       return CTypeManager::Get()->GetBool();
+    return NULL;
+  } else if(oper == opOr || oper == opAnd) {
+    if(GetLeft()->GetType() == CTypeManager::Get()->GetBool() &&
+       GetRight()->GetType() == CTypeManager::Get()->GetBool())
+       return CTypeManager::Get()->GetBool();
+    return NULL;
+  } else {
+    if(GetLeft()->GetType() == CTypeManager::Get()->GetInt() &&
+       GetRight()->GetType() == CTypeManager::Get()->GetInt())
+       return CTypeManager::Get()->GetInt();
+    return NULL;
+  }
 }
 
 ostream& CAstBinaryOp::print(ostream &out, int indent) const
@@ -886,7 +898,11 @@ bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstUnaryOp::GetType(void) const
 {
-  return CTypeManager::Get()->GetInt();
+  if(GetOperation() == opNot && GetOperand()->GetType() == CTypeManager::Get()->GetBool())
+    return CTypeManager::Get()->GetBool();
+  else if((GetOperation() == opPos || GetOperation() == opNeg) && GetOperand()->GetType() == CTypeManager::Get()->GetInt())
+    return CTypeManager::Get()->GetInt();
+  return NULL;
 }
 
 ostream& CAstUnaryOp::print(ostream &out, int indent) const
@@ -958,6 +974,9 @@ bool CAstSpecialOp::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstSpecialOp::GetType(void) const
 {
+  if(GetOperation() == opAddress) {
+    return CTypeManager::Get()->GetPointer(GetOperand()->GetType());
+  }
   return NULL;
 }
 
@@ -1208,11 +1227,12 @@ const CType* CAstArrayDesignator::GetType(void) const
 
   int i = GetNIndices();
   while(i > 0) {
-    if(const CArrayType *artyp = dynamic_cast<const CArrayType *>(typ)) {
-      typ = artyp->GetInnerType();
-    } else if(const CPointerType *ptyp = dynamic_cast<const CPointerType *>(typ)) {
+    if(const CPointerType *ptyp = dynamic_cast<const CPointerType *>(typ))
       typ = ptyp->GetBaseType();
-    }
+
+    if(const CArrayType *artyp = dynamic_cast<const CArrayType *>(typ))
+      typ = artyp->GetInnerType();
+    
     i--;
   }
   return typ;

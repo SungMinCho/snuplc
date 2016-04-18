@@ -100,6 +100,7 @@ void CParser::SetError(CToken t, const string message)
 
 bool CParser::Consume(EToken type, CToken *token)
 {
+  DEBUG(cout << "consume " << CToken::Name(type) << endl;)
   if (_abort) return false;
 
   CToken t = _scanner->Get();
@@ -284,7 +285,8 @@ CAstModule* CParser::module(void)
 void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
   // formalParam ::= "(" [ varDeclSequence ] ")"
   Consume(tLBrak);
-  varDeclSequence(s, false, symproc);
+  if(_scanner->Peek().GetType() == tIdent)
+    varDeclSequence(s, false, symproc);
   Consume(tRBrak);
 }
 
@@ -323,7 +325,9 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   CAstStatement* stat = subroutineBody(proc);
   CToken endingName;
   Consume(tIdent, &endingName);
-  assert(procedureName.GetValue() == endingName.GetValue() && "procedure should end with \"end\" procedurename");
+  if(procedureName.GetValue() != endingName.GetValue()) {
+    SetError(endingName, "procedure/function identifier mismatch ('foo' != 'foox').");
+  }
   Consume(tSemicolon);
 
   proc->SetStatementSequence(stat);
@@ -402,8 +406,8 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       Consume(tReturn, &returntoken);
 
       CAstExpression* returnexpr = NULL;
-      if(true) { // TODO : when to read expression?
-        assert(false && "condition for reading returnexpr not implemented yet");
+      EToken ttt = _scanner->Peek().GetType();
+      if(!(ttt == tSemicolon || ttt == tEnd || ttt == tElse)) { // TODO : correct condition?
         returnexpr = expression(s);
       }
 
@@ -479,8 +483,12 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   Consume(tLBrak);
   while(_scanner->Peek().GetType() != tRBrak) {
     CAstExpression* expr = expression(s);
-    CAstSpecialOp* derefer = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL); 
-    func->AddArg(expr);
+    if(expr->GetType()->IsArray()) {
+      CAstSpecialOp* derefer = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL); 
+      func->AddArg(derefer);
+    } else {
+      func->AddArg(expr);
+    }
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
     else break;
   }
