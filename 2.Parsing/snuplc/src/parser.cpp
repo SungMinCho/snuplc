@@ -499,6 +499,16 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   CAstExpression *n = NULL;
 
   n = term(s);
+  if(unary) {
+    if(CAstConstant *constant = dynamic_cast<CAstConstant*>(n)) {
+      if(unaryOp == opNeg) {
+        constant->SetValue(-constant->GetValue());
+      }
+      n = constant;
+    } else {
+      n = new CAstUnaryOp(unaryToken, unaryOp, n);
+    }
+  }
 
   while (_scanner->Peek().GetType() == tTermOp) {
     CToken t;
@@ -516,8 +526,7 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
     n = new CAstBinaryOp(t, op, l, r);
   }
 
-  if(unary) return new CAstUnaryOp(unaryToken, unaryOp, n);
-  else return n;
+  return n;
 }
 
 CAstExpression* CParser::term(CAstScope *s)
