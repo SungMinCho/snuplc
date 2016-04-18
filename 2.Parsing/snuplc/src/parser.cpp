@@ -293,6 +293,8 @@ CAstStatement* CParser::statSequence(CAstScope *s)
   // ifStatement ::= "if" "(" expression ")" "then" statSequence [ "else" statSequence ] "end"
   // whileStatement ::= "while" "(" expression ")" "do" statSequence "end"
   // returnStatement ::= "return" [ expression ]
+  //
+  // FIRST(expression) = { "+", "-", ident, number, boolean, char, string, "(", ident, "!" }
   
   if(_scanner->Peek().GetType() == tEnd ||
      _scanner->Peek().GetType() == tElse) return NULL;
@@ -341,8 +343,7 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       Consume(tReturn, &returntoken);
 
       CAstExpression* returnexpr = NULL;
-      if(_scanner->Peek().GetType() == tTermOp &&
-         _scanner->Peek().GetValue() != "||") {
+      if(true) { // TODO : when to read expression?
         returnexpr = expression(s);
       }
 
@@ -353,21 +354,21 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       EToken ttt = _scanner->Peek().GetType();
       if(ttt == tLSqrBrak || ttt == tAssign) {
         // assignment
-        assert(false && "Assignment TODO");
+        //assert(false && "Assignment TODO");
         
         // read qualident ...
         if(_scanner->Peek().GetType() == tLSqrBrak) {
           assert(false && "qualident with array access not implemented yet");
         }
 
-        /*CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), ?scope);
+        const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue()); // TODO : scope?
         
         Consume(tAssign);
 
-        CAstConstant* lhs = new CAstConstant(id, sym->GetDataType(), ?value);
+        CAstConstant* lhs = new CAstConstant(id, sym->GetDataType(), sym->GetOffset()); // TODO : GetOffset right?
         CAstExpression* rhs = expression(s);
 
-        temp = new CAstStatAssign(id, lhs, rhs);*/
+        temp = new CAstStatAssign(id, lhs, rhs);
       } else if(ttt == tLBrak) {
         // subroutineCall
         
@@ -377,7 +378,7 @@ CAstStatement* CParser::statSequence(CAstScope *s)
         Consume(tLBrak);
         vector<CAstExpression> args;
 
-        while(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") {
+        while(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") { // TODO wrong condition of expression
           CAstExpression* arg = expression(s);
           args.push_back(arg);
           if(_scanner->Peek().GetType() != tComma) break;
@@ -418,7 +419,13 @@ CAstExpression* CParser::expression(CAstScope* s)
 {
   //
   // expression ::= simpleexpr [ relOp simpleexpression ].
+  // simpleexpr ::= ["+"|"-"] term {termOp term}
+  // term ::= factor {factOp factor}
+  // factor ::= qualident | number | boolean | char | string | "(" expression ")" | subroutineCall | "!" factor
+  // qualident ::= ident { "[" expression "]" }
+  // subroutineCall ::= ident "(" [ expression {"," expression} ] ")"
   //
+  // FIRST(expression) = { "+", "-", ident, number, boolean, char, string, "(", ident, "!" }
   CToken t;
   EOperation relop;
   CAstExpression *left = NULL, *right = NULL;
@@ -444,6 +451,25 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   //
   // simpleexpr ::= term { termOp term }.
   //
+  // simpleexpr ::= ["+"|"-"] term {termOp term}
+  // term ::= factor {factOp factor}
+  // factor ::= qualident | number | boolean | char | string | "(" expression ")" | subroutineCall | "!" factor
+  // qualident ::= ident { "[" expression "]" }
+  // subroutineCall ::= ident "(" [ expression {"," expression} ] ")"
+
+
+
+  bool unary = false;
+  EOperation unaryOp;
+  CToken unaryToken;
+  if(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") { // plus minus
+    Consume(tTermOp, &unaryToken);
+    if(unaryToken.GetValue() == "+") unaryOp = opPos;
+    else if(unaryToken.GetValue() == "-") unaryOp = opNeg; // scanner guarantees that these two are the only case
+    unary = true;
+  }
+
+
   CAstExpression *n = NULL;
 
   n = term(s);
@@ -451,22 +477,29 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   while (_scanner->Peek().GetType() == tTermOp) {
     CToken t;
     CAstExpression *l = n, *r;
+    EOperation op;
 
     Consume(tTermOp, &t);
 
     r = term(s);
 
-    n = new CAstBinaryOp(t, t.GetValue() == "+" ? opAdd : opSub, l, r);
+    if(t.GetValue() == "+") op = opAdd;
+    else if(t.GetValue() == "-") op = opSub;
+    else op = opOr;
+
+    n = new CAstBinaryOp(t, op, l, r);
   }
 
-
-  return n;
+  if(unary) return new CAstUnaryOp(unaryToken, unaryOp, n);
+  else return n;
 }
 
 CAstExpression* CParser::term(CAstScope *s)
 {
   //
   // term ::= factor { ("*"|"/") factor }.
+  //
+  // term ::= factor { factOp factor }.
   //
   CAstExpression *n = NULL;
 
@@ -477,12 +510,17 @@ CAstExpression* CParser::term(CAstScope *s)
   while (tt == tFactOp) {
     CToken t;
     CAstExpression *l = n, *r;
+    EOperation op;
 
     Consume(tFactOp, &t);
 
     r = factor(s);
 
-    n = new CAstBinaryOp(t, t.GetValue() == "*" ? opMul : opDiv, l, r);
+    if(t.GetValue() == "*") op = opMul;
+    else if(t.GetValue() == "/") op = opDiv;
+    else op = opAnd;
+
+    n = new CAstBinaryOp(t, op, l, r);
 
     tt = _scanner->Peek().GetType();
   }
@@ -497,28 +535,33 @@ CAstExpression* CParser::factor(CAstScope *s)
   //
   // FIRST(factor) = { tNumber, tLBrak }
   //
+  // factor ::= qualident | number | boolean | char | string | "(" expression ")" | subroutineCall | "!" factor
+  // FIRST(factor) = { ident, number, boolean, char, string, "(", ident, "!" }
+  //
 
   CToken t;
   EToken tt = _scanner->Peek().GetType();
-  CAstExpression *unary = NULL, *n = NULL;
+  CAstExpression *n = NULL;
 
-  switch (tt) {
-    // factor ::= number
-    case tNumber:
-      n = number();
-      break;
-
-    // factor ::= "(" expression ")"
-    case tLBrak:
-      Consume(tLBrak);
-      n = expression(s);
-      Consume(tRBrak);
-      break;
-
-    default:
-      cout << "got " << _scanner->Peek() << endl;
-      SetError(_scanner->Peek(), "factor expected.");
-      break;
+  if(tt == tNumber) {
+    n = number();
+  } else if(tt == tBoolean) {
+    // TODO
+  } else if(tt == tCharacter) {
+    // TODO
+  } else if(tt == tString) {
+    // TODO
+  } else if(tt == tLBrak) {
+    Consume(tLBrak);
+    n = expression(s);
+    Consume(tRBrak);
+  } else if(tt == tNot) {
+    CToken nottoken;
+    Consume(tNot, &nottoken);
+    n = factor(s);
+    n = new CAstUnaryOp(nottoken, opNot, n);
+  } else if(tt == tIdent) {
+    // TODO. qualident or subroutineCall
   }
 
   return n;
