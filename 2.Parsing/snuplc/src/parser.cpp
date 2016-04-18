@@ -353,7 +353,6 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       EToken ttt = _scanner->Peek().GetType();
       if(ttt == tLSqrBrak || ttt == tAssign) {
         // assignment
-        //assert(false && "Assignment TODO");
         
         // read qualident ...
         if(_scanner->Peek().GetType() == tLSqrBrak) {
@@ -371,32 +370,7 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       } else if(ttt == tLBrak) {
         // subroutineCall
         
-        assert(false && "subroutineCall TODO");
-
-        /*
-        Consume(tLBrak);
-        vector<CAstExpression> args;
-
-        while(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") { // TODO wrong condition of expression
-          CAstExpression* arg = expression(s);
-          args.push_back(arg);
-          if(_scanner->Peek().GetType() != tComma) break;
-          Consume(tComma);
-        }
-        Consume(tRBrak);
-
-        const CType* returntype = s->GetSymbolTable()->FindSymbol(id.GetValue(), ?scope)->GetDataType();
-        CSymProc* symproc = new CSymProc(id.GetValue(), returntype);
-        vector<CAstExpression>::iterator iter;
-        int index = 0;
-        for(iter = args.begin(); iter != args.end(); iter++) {
-
-          symproc->AddParam(new CSymParam(index, ?name, iter->GetType()));
-          index++;
-        }
-        CAstFunctionCall* call = new CAstFunctionCall(id, symproc);
-        
-        temp = new CAstStatCall(id, call); */
+        temp = new CAstStatCall(id, subroutineCall(s, id));
       } else {
         SetError(_scanner->Peek(), "assignment or subroutineCall expected."); // TODO: not exactly the right error token. we ate the id.
       }
@@ -415,6 +389,38 @@ CAstStatement* CParser::statSequence(CAstScope *s)
     else return stat;
   }
 
+}
+
+CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
+  // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
+  // ident is already read and given to us
+  
+  /*
+  Consume(tLBrak);
+  vector<CAstExpression> args;
+
+  while(_scanner->Peek().GetType() == tTermOp && _scanner->Peek().GetValue() != "||") { // TODO wrong condition of expression
+    CAstExpression* arg = expression(s);
+    args.push_back(arg);
+    if(_scanner->Peek().GetType() != tComma) break;
+    Consume(tComma);
+  }
+  Consume(tRBrak);
+
+  const CType* returntype = s->GetSymbolTable()->FindSymbol(id.GetValue(), ?scope)->GetDataType();
+  CSymProc* symproc = new CSymProc(id.GetValue(), returntype);
+  vector<CAstExpression>::iterator iter;
+  int index = 0;
+  for(iter = args.begin(); iter != args.end(); iter++) {
+
+    symproc->AddParam(new CSymParam(index, ?name, iter->GetType()));
+    index++;
+  }
+  CAstFunctionCall* call = new CAstFunctionCall(id, symproc);
+  
+  temp = new CAstStatCall(id, call); */
+  
+  return NULL;
 }
 
 CAstExpression* CParser::expression(CAstScope* s)
