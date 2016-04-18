@@ -549,6 +549,8 @@ CAstExpression* CParser::factor(CAstScope *s)
     // TODO
   } else if(tt == tCharacter) {
     // TODO
+    Consume(tCharacter, &t);
+    n = new CAstConstant(t, CTypeManager::Get()->GetChar(), (int)t.GetValue()[0]);
   } else if(tt == tString) {
     // TODO
   } else if(tt == tLBrak) {
