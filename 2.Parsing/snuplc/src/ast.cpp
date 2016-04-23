@@ -808,6 +808,7 @@ bool CAstBinaryOp::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstBinaryOp::GetType(void) const
 {
+  if(GetLeft()->GetType() == NULL || GetRight()->GetType() == NULL) return NULL;
   EOperation oper = GetOperation();
   if(oper == opEqual || oper == opLessEqual || oper == opLessThan ||
      oper == opBiggerThan || oper == opBiggerEqual || oper == opNotEqual) {
