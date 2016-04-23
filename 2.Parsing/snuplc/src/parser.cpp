@@ -274,7 +274,8 @@ CAstModule* CParser::module(void)
 
   CToken endingName;
   Consume(tIdent, &endingName);
-  assert(moduleName.GetValue() == endingName.GetValue() && "module should end with \"end\" modulename");
+  if(moduleName.GetValue() != endingName.GetValue())
+    SetError(endingName, "module identifier mismatch ('" + moduleName.GetValue() + "' != '" + endingName.GetValue() + "').");
 
   Consume(tDot);
 
@@ -327,7 +328,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   CToken endingName;
   Consume(tIdent, &endingName);
   if(procedureName.GetValue() != endingName.GetValue()) {
-    SetError(endingName, "procedure/function identifier mismatch ('foo' != 'foox').");
+    SetError(endingName, "procedure/function identifier mismatch ('" + procedureName.GetValue() + "' != '" + endingName.GetValue() + "').");
   }
   Consume(tSemicolon);
 
@@ -471,6 +472,7 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
   if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
   const CSymProc *symproc = dynamic_cast<const CSymProc*>(sym);
+  if(!symproc) SetError(id, "invalid procedure/function identifier.");
   CSymProc *derefered_symproc = new CSymProc(symproc->GetName(), symproc->GetDataType());
 
   for(int i = 0; i < symproc->GetNParams(); i++) {
@@ -651,16 +653,16 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
     n = new CAstDesignator(id, sym);
   } else {
     CAstArrayDesignator* var = new CAstArrayDesignator(id, sym);
-    if(var->GetType() == NULL) cout << "var type NULL create" << endl;
+    //if(var->GetType() == NULL) cout << "var type NULL create" << endl;
     while(_scanner->Peek().GetType() == tLSqrBrak) {
       Consume(tLSqrBrak);
       CAstExpression* expr = expression(s);
       var->AddIndex(expr);
       Consume(tRSqrBrak);
     }
-    if(var->GetType() == NULL) cout << "var type NULL before" << endl;
+    //if(var->GetType() == NULL) cout << "var type NULL before" << endl;
     var->IndicesComplete();
-    if(var->GetType() == NULL) cout << "var type NULL after" << endl;
+    //if(var->GetType() == NULL) cout << "var type NULL after" << endl;
     n = var;
   }
 
@@ -714,6 +716,10 @@ CAstExpression* CParser::factor(CAstScope *s)
       // qualident
       n = qualident(s, id);
     }
+  } else {
+    // strange case
+    CToken unexpected = _scanner->Peek();
+    SetError(unexpected, "factor expected.");
   }
 
   return n;

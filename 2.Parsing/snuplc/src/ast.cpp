@@ -1236,6 +1236,8 @@ const CType* CAstArrayDesignator::GetType(void) const
 
     if(const CArrayType *artyp = dynamic_cast<const CArrayType *>(typ))
       typ = artyp->GetInnerType();
+    else
+      return NULL;
     
     i--;
   }
