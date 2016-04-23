@@ -229,9 +229,7 @@ void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc) {
     varDecl(s, isGlobal, symproc);
     if(_scanner->Peek().GetType() != tSemicolon) return;
     Consume(tSemicolon);
-    if(_scanner->Peek().GetType() == tBegin ||
-       _scanner->Peek().GetType() == tProcedure ||
-       _scanner->Peek().GetType() == tFunction ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
+    if(_scanner->Peek().GetType() != tIdent ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
   }
 }
 
@@ -265,7 +263,7 @@ CAstModule* CParser::module(void)
 
   while(true) {
     EToken tt = _scanner->Peek().GetType();
-    if(tt == tBegin) break;
+    if(tt != tProcedure && tt != tFunction) break;
     CAstProcedure* subroutine = subroutineDecl(m);
     //m->AddProcedure(subroutine);
   }
