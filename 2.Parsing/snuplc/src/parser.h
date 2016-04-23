@@ -87,9 +87,6 @@ class CParser {
     /// @retval false otherwise
     bool Consume(EToken type, CToken *token=NULL);
 
-    /// @brief returns derefered type
-    const CType* DereferedType(const CType* typ);
-
 
     /// @brief initialize symbol table @a s with predefined procedures and
     ///        global variables

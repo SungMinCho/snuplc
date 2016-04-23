@@ -224,7 +224,6 @@ void CSymProc::AddParam(CSymParam *param)
   _param.push_back(param);
 }
 
-
 int CSymProc::GetNParams(void) const
 {
   return (int)_param.size();

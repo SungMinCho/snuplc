@@ -453,16 +453,6 @@ CAstStatement* CParser::statSequence(CAstScope *s)
     }
     else return stat;
   }
-
-}
-
-const CType* CParser::DereferedType(const CType* typ) {
-  if(const CArrayType* artyp = dynamic_cast<const CArrayType*>(typ)) {
-    // TODO : may have to get inner type THEN pointer
-    return CTypeManager::Get()->GetPointer(typ);
-  } else {
-    return typ;
-  }
 }
 
 CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
@@ -473,28 +463,21 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
   const CSymProc *symproc = dynamic_cast<const CSymProc*>(sym);
   if(!symproc) SetError(id, "invalid procedure/function identifier.");
-  CSymProc *derefered_symproc = new CSymProc(symproc->GetName(), symproc->GetDataType());
-
-  for(int i = 0; i < symproc->GetNParams(); i++) {
-    const CSymParam *param = symproc->GetParam(i);
-    CSymParam *derefered_param = new CSymParam(i, param->GetName(), DereferedType(param->GetDataType()));
-    derefered_symproc->AddParam(derefered_param);
-  }
   
   CAstFunctionCall* func = new CAstFunctionCall(id, symproc); // TODO: NULL has to be some const CSymProc*
   
+  int index = 0;
   Consume(tLBrak);
   while(_scanner->Peek().GetType() != tRBrak) {
     CAstExpression* expr = expression(s);
-    DEBUG(cout << "after expression returns to subroutineCall" << endl;)
-    DEBUG(if(expr->GetType() == NULL) cout << "expr's type is NULL" << endl;)
-    if(expr->GetType()->IsArray()) {
-      CAstSpecialOp* derefer = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL); 
-      func->AddArg(derefer);
-    } else {
-      func->AddArg(expr);
-    }
-    DEBUG(cout << "after adding argument to func in subroutineCall" << endl;)
+    if(expr->GetType()->IsArray()) expr = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL);
+
+    func->AddArg(expr);
+    
+    const CSymParam* param = symproc->GetParam(index);
+    if(!expr->GetType()->Match(param->GetDataType()))
+      //SetError(expr->GetToken(), "argument type mismatch");
+    index++;
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
     else break;
   }
