@@ -17,7 +17,13 @@ def main():
   total = 0
   success = 0
 
-  for root, dirs, files in os.walk("./test"):
+  testdir = None
+  if(len(sys.argv) == 2):
+    testdir = sys.argv[1]
+  else:
+    testdir = "./test"
+
+  for root, dirs, files in os.walk(testdir):
     for f in files:
       if f.endswith(".mod"):
         total += 1
