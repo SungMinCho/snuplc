@@ -462,8 +462,8 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
   // ident is already read and given to us
  
-  const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
-  if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  if(!sym) SetError(id, "undefined identifier.");
   const CSymProc *symproc = dynamic_cast<const CSymProc*>(sym);
   if(!symproc) SetError(id, "invalid procedure/function identifier.");
   
@@ -630,8 +630,8 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
   // ident is already read and given as id
    
   // later, i might replace below 2 lines with 1 line with just stGlobal as scope
-  const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sLocal);
-  if(!sym) sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  if(!sym) SetError(id, "undefined identifier.");
 
   CAstExpression* n;
   EToken ttt = _scanner->Peek().GetType();
