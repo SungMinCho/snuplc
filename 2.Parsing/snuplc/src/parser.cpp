@@ -208,7 +208,7 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
   for(iter = vars.begin(); iter != vars.end(); iter++) {
     if(s->GetSymbolTable()->FindSymbol(iter->GetValue(), sLocal) != NULL)
       SetError(*iter, "duplicate variable declaration '" + iter->GetValue() + "'.");
-    
+
     CSymbol *sym;
     if(isGlobal) { // symbol is global
       sym = new CSymGlobal(iter->GetValue(), typ);
@@ -563,8 +563,9 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
 
   n = term(s);
   DEBUG(cout << "after term returns to simplexpr" << endl;)
+  CAstConstant *constant = dynamic_cast<CAstConstant*>(n);
   if(unary) {
-    if(CAstConstant *constant = dynamic_cast<CAstConstant*>(n)) {
+    if(constant != NULL && constant->GetType()->IsInt()) {
       if(unaryOp == opNeg) {
         constant->SetValue(-constant->GetValue());
       }
