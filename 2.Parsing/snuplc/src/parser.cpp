@@ -161,23 +161,28 @@ const CType* CParser::type(bool isArgument) {
   else if(basetype.GetValue() == "char") t = CTypeManager::Get()->GetChar();
   else t = CTypeManager::Get()->GetInt(); // ensured by my scanner design
 
+  vector<int> indices;
   while(true) {
     if(_scanner->Peek().GetType() != tLSqrBrak) {
+      vector<int>::reverse_iterator rit;
+      for(rit = indices.rbegin(); rit != indices.rend(); rit++) {
+        t = CTypeManager::Get()->GetArray(*rit, t);
+      }
+
       if(isArgument &&  t->IsArray()) {
-        //const CArrayType *at = dynamic_cast<const CArrayType*>(t);
-        //t = CTypeManager::Get()->GetPointer(at->GetInnerType());
-        t = CTypeManager::Get()->GetPointer(t); // TODO : why this works?
+        t = CTypeManager::Get()->GetPointer(t);
       }
       return t;
     }
     Consume(tLSqrBrak);
     if(_scanner->Peek().GetType() != tRSqrBrak) {
       CAstConstant* num = number();
+      indices.push_back(num->GetValue());
       Consume(tRSqrBrak);
-      t = CTypeManager::Get()->GetArray(num->GetValue(), t); // TODO : mind that num->GetValue long long to int...
     } else {
+      int open = CArrayType::OPEN;
+      indices.push_back(open);
       Consume(tRSqrBrak);
-      t = CTypeManager::Get()->GetArray(CArrayType::OPEN,t);
     }
   }
 
