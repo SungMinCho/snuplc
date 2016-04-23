@@ -980,6 +980,7 @@ bool CAstSpecialOp::TypeCheck(CToken *t, string *msg) const
 const CType* CAstSpecialOp::GetType(void) const
 {
   if(GetOperation() == opAddress) {
+    if(GetOperand()->GetType() == NULL) return NULL;
     return CTypeManager::Get()->GetPointer(GetOperand()->GetType());
   }
   return NULL;
