@@ -206,6 +206,9 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
   vector<CToken>::iterator iter;
   int index = 0;
   for(iter = vars.begin(); iter != vars.end(); iter++) {
+    if(s->GetSymbolTable()->FindSymbol(iter->GetValue(), sLocal) != NULL)
+      SetError(*iter, "duplicate variable declaration '" + iter->GetValue() + "'.");
+    
     CSymbol *sym;
     if(isGlobal) { // symbol is global
       sym = new CSymGlobal(iter->GetValue(), typ);
@@ -307,6 +310,8 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   if(tt == tProcedure) {
     Consume(tProcedure);
     Consume(tIdent, &procedureName);
+    if(s->GetSymbolTable()->FindSymbol(procedureName.GetValue(), sGlobal) != NULL)
+      SetError(procedureName, "duplicate procedure/function declaration '" + procedureName.GetValue() + "'.");
     symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
@@ -314,6 +319,8 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   } else if(tt == tFunction) {
     Consume(tFunction);
     Consume(tIdent, &procedureName);
+    if(s->GetSymbolTable()->FindSymbol(procedureName.GetValue(), sGlobal) != NULL)
+      SetError(procedureName, "duplicate procedure/function declaration '" + procedureName.GetValue() + "'.");
     symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
