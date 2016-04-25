@@ -280,59 +280,67 @@ void CParser::varDeclaration(CAstScope* s, bool isGlobal) {
   //Consume(tSemicolon);  don't eat ";" because varDeclSequence() eats it
 }
 
+// parses module and returns CAstModule* for it
 CAstModule* CParser::module(void)
 {
-  //
-  // old module ::= statSequence  ".".
   // module ::= "module" ident ";"' varDeclaration { subroutineDecl } "begin" statSequence "end" ident "."
-  //
+
   CToken moduleToken;
   Consume(tModule, &moduleToken);
   CToken moduleName;
   Consume(tIdent, &moduleName);
 
-  // TODO. is it right to put moduleName for 1st parameter?
   CAstModule *m = new CAstModule(moduleToken, moduleName.GetValue());
 
+  // initialize symbol table for module
   InitSymbolTable(m->GetSymbolTable());
 
   Consume(tSemicolon);
+
+  // call varDeclaration. isGlobal=true because declarations are happening in module
   varDeclaration(m, true);
 
   while(true) {
     EToken tt = _scanner->Peek().GetType();
+    // parse subroutine declarations until procedureDecl/functionDecl doesn't appear
     if(tt != tProcedure && tt != tFunction) break;
+    // the new subroutine automatically adds itself as child of m
     CAstProcedure* subroutine = subroutineDecl(m);
-    //m->AddProcedure(subroutine);
   }
 
   Consume(tBegin);
 
-  CAstStatement *statseq = NULL;
-  statseq = statSequence(m);
+  CAstStatement *statseq = statSequence(m);
 
   Consume(tEnd);
 
   CToken endingName;
   Consume(tIdent, &endingName);
+
+  // if module name doesn't match the ending name, it is an error
   if(moduleName.GetValue() != endingName.GetValue())
     SetError(endingName, "module identifier mismatch ('" + moduleName.GetValue() + "' != '" + endingName.GetValue() + "').");
 
   Consume(tDot);
 
+  // set module's statement sequence
   m->SetStatementSequence(statseq);
 
   return m;
 }
 
+// parses formalParam of procedure/function
 void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
   // formalParam ::= "(" [ varDeclSequence ] ")"
+
   Consume(tLBrak);
+  // if varDeclSequence appears, we will be able to see tIdent appear
   if(_scanner->Peek().GetType() == tIdent)
-    varDeclSequence(s, false, symproc);
+    varDeclSequence(s, false, symproc); // isGlobal=false because parameters are local
   Consume(tRBrak);
 }
 
+// parses subroutineDecl and returns CAstProcedure* for it
 CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   // subroutineDecl ::= (procedureDecl | functionDecl) subroutineBody ident ";"
   // procedureDecl ::= "procedure" ident [ formalParam ] ";"
@@ -342,47 +350,80 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   CAstProcedure* proc;
   CSymProc *symproc;
   EToken tt = _scanner->Peek().GetType();
-  if(tt == tProcedure) {
+  if(tt == tProcedure) { // procedureDecl
     Consume(tProcedure);
-    Consume(tIdent, &procedureName);
+    Consume(tIdent, &procedureName); // get procedure name
+
+    // if procedure name already exists as global symbol, it is duplicate declaration
     if(s->GetSymbolTable()->FindSymbol(procedureName.GetValue(), sGlobal) != NULL)
       SetError(procedureName, "duplicate procedure/function declaration '" + procedureName.GetValue() + "'.");
+
+    // initialize signature of procedure to be () -> NULL
     symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
+
+    // make procedure AST. it automatically adds itself as child scope to the module
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
+
+    // if we see "(" which is in FIRST(formalParam)={"("}, we call formalParam()
+    // formalParam will also update the parameters of procedure signature (symproc) for us
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
+
     Consume(tSemicolon);
-  } else if(tt == tFunction) {
+  } else if(tt == tFunction) { // functionDecl
     Consume(tFunction);
-    Consume(tIdent, &procedureName);
+    Consume(tIdent, &procedureName); // get function name
+
+    // if function name already exists as global symbol, it is duplicate declaration
     if(s->GetSymbolTable()->FindSymbol(procedureName.GetValue(), sGlobal) != NULL)
       SetError(procedureName, "duplicate procedure/function declaration '" + procedureName.GetValue() + "'.");
+
+    // initialize signature of function to be () -> NULL
     symproc = new CSymProc(procedureName.GetValue(), CTypeManager::Get()->GetNull());
+
+    // make procedure AST. it automatically adds itself as child scope to the module
     proc = new CAstProcedure(procedureName, procedureName.GetValue(), s, symproc);
+
+    // if we see "(" which is in FIRST(formalParam)={"("}, we call formalParam()
+    // formalParam will also update the parameters of function signature (symproc) for us
     if(_scanner->Peek().GetType() == tLBrak) formalParam(proc, symproc);
+
     Consume(tColon);
-    const CType* typ = type(true);
-    symproc->SetDataType(typ);
+
+    const CType* typ = type(true); // read the return type. isArgument=false because it isn't an argument 
+    symproc->SetDataType(typ); // adjust the return type of the function
+
     Consume(tSemicolon);
   } else {
-    Consume(tProcedure); // intention is to make error. this kind of indirect code should be avoided i think... fix later
+    Consume(tProcedure); // intention is to make error
+    // currently, it is guaranteed the control flow doesn't reach this point because
+    // module() only calls subroutineDecl() when it sees "procedure" or "function"
   }
 
+  // register procedure/function symbol in module
   s->GetSymbolTable()->AddSymbol(symproc);
 
+  // read body of the procedure/function
   CAstStatement* stat = subroutineBody(proc);
+
   CToken endingName;
-  Consume(tIdent, &endingName);
+  Consume(tIdent, &endingName); // get ending name
+
+  // if procedure name doesn't match the ending name, it is an error
   if(procedureName.GetValue() != endingName.GetValue()) {
     SetError(endingName, "procedure/function identifier mismatch ('" + procedureName.GetValue() + "' != '" + endingName.GetValue() + "').");
   }
+
   Consume(tSemicolon);
 
+  // set the statement sequence of the procedure
   proc->SetStatementSequence(stat);
   return proc;
 }
 
+// parses subroutineBody and returns CAstStatement* for it
 CAstStatement* CParser::subroutineBody(CAstScope *s) {
   // subroutineBody ::= varDeclaration "begin" statSequence "end"
+
   varDeclaration(s);
   Consume(tBegin);
   CAstStatement *stat = statSequence(s);
@@ -390,14 +431,14 @@ CAstStatement* CParser::subroutineBody(CAstScope *s) {
   return stat;
 }
 
+// parses statSequence and returns CAstStatement* for it
 CAstStatement* CParser::statSequence(CAstScope *s)
 {
   //
   // statSequence ::= [ statement { ";" statement } ].
-  // old statement ::= assignment.
   // statement ::= assignment | subroutineCall | ifStatement | whileStatement | returnStatement
-  // FIRST(statSequence) = { ident, ident, if, while, return }
-  // FOLLOW(statSequence) = { end, else, end }
+  // FIRST(statSequence) = { ident, if, while, return }
+  // FOLLOW(statSequence) = { end, else }
   //
   // assignment ::= ident { "[" expression "]" } ":=" expression
   // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"

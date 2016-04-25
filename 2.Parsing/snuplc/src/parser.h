@@ -117,13 +117,24 @@ class CParser {
     /// @param symproc optionally given when we should also store the variables as parameters of a procedure/function
     void              varDeclaration(CAstScope *s, bool isGlobal=false);
 
+    /// @brief parses formalParam of procedure/function
+    /// @param s the procedure/function scope in which we should save symbols of parameters
+    /// @param symproc the CSymProc of the function in which we should add parameter types
     void              formalParam(CAstScope *s, CSymProc *symproc = NULL);
 
+    /// @brief parses module and returns CAstModule* for it
     CAstModule*       module(void);
+
+    /// @brief parses subroutineDecl and returns CAstProcedure* for it
+    /// @param s parent scope (module in this case)
     CAstProcedure*    subroutineDecl(CAstScope *s);
 
+    /// @brief parses statSequence and returns CAstStatement* for it
+    /// @param s parent scope
     CAstStatement*    statSequence(CAstScope *s);
 
+    /// @brief parses subroutineBody and returns CAstStatement* for it
+    /// @param s parent scope (in this case it is procedure where the body belongs)
     CAstStatement*    subroutineBody(CAstScope *s);
 
     CAstExpression*   expression(CAstScope *s);
