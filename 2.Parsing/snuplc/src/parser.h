@@ -97,6 +97,7 @@ class CParser {
     
     /// @brief parses type and returns CType*
     /// @param isArgument whether the type is for argument of a procedure/function or not
+    /// @retval const CType * parsed type
     const CType*      type(bool isArgument);
 
     /// @brief parses varDecl and saves them in symbol table of scope s
@@ -122,51 +123,64 @@ class CParser {
     void              formalParam(CAstScope *s, CSymProc *symproc = NULL);
 
     /// @brief parses module and returns CAstModule* for it
+    /// @retval CAstModule * module AST
     CAstModule*       module(void);
 
     /// @brief parses subroutineDecl and returns CAstProcedure* for it
     /// @param s module scope where this subroutine belongs
+    /// @retval CAstProcedure * procedure AST
     CAstProcedure*    subroutineDecl(CAstScope *s);
 
     /// @brief parses statSequence and returns CAstStatement* for it
     /// @param s the scope where statements belong
+    /// @retval CAstStatement * statSequence AST
     CAstStatement*    statSequence(CAstScope *s);
 
     /// @brief parses subroutineBody and returns CAstStatement* for it
     /// @param s the scope of the procedure where this body belongs
+    /// @retval CAstStatement * subroutine body AST
     CAstStatement*    subroutineBody(CAstScope *s);
 
     /// @brief parses expression and returns CAstExpression* for it
     /// @param s scope where the expression belongs
+    /// @retval CAstExpression * expression AST
     CAstExpression*   expression(CAstScope *s);
 
     /// @brief parses simpleexpr and returns CAstExpression* for it
     /// @param s scope where the simpleexpr belongs
+    /// @retval CAstExpression * simpleexpr AST
     CAstExpression*   simpleexpr(CAstScope *s);
 
     /// @brief parses term and returns CAstExpression* for it
     /// @param s scope where the term belongs
+    /// @retval CAstExpression * term AST
     CAstExpression*   term(CAstScope *s);
 
     /// @brief parses factor and returns CAstExpression* for it
     /// @param s scope where the factor belongs
+    /// @retval CAstExpression * factor AST
     CAstExpression*   factor(CAstScope *s);
 
     /// @brief parses subroutineCall and returns CAstFunctionCall* for it
     /// @param id the ident token which is the first token of subroutineCall. it is already consumed and passed to us
+    /// @retval CAstFunctionCall * subroutineCall AST
     CAstFunctionCall* subroutineCall(CAstScope *s, CToken id);
 
     /// @brief parses qualident and returns CAstExpression* for it
     /// @param id the ident token which is the first token of qualident. it is already consumed and passed to us
+    /// @retval CAstExpression * qualident AST
     CAstExpression*   qualident(CAstScope *s, CToken id);
 
     /// @brief parses a number and returns CAstConstant* for it
+    /// @retval CAstConstant * number AST
     CAstConstant*     number(void);
 
     /// @brief parses a boolean and returns CAstConstant* for it
+    /// @retval CAstConstant * boolean AST
     CAstConstant*     boolean(void);
 
     /// @brief parses a string and returns CAstStringConstant* for it
+    /// @retval CAstStringConstant * string AST
     CAstStringConstant*   stringConstant(CAstScope* s);
 
     /// @}
