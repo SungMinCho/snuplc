@@ -120,11 +120,10 @@ void CParser::InitSymbolTable(CSymtab *s)
 {
   CTypeManager *tm = CTypeManager::Get();
 
-  // TODO: add predefined functions here
   CSymProc *DIM, *DOFS, *ReadInt, *WriteChar, *WriteInt, *WriteLn, *WriteStr;
 
   DIM = new CSymProc("DIM", tm->GetInt());
-  DIM->AddParam(new CSymParam(0, "arg0", tm->GetPointer(tm->GetNull()))); // TODO : what is argument name? same TODO for below
+  DIM->AddParam(new CSymParam(0, "arg0", tm->GetPointer(tm->GetNull())));
   DIM->AddParam(new CSymParam(1, "arg1", tm->GetInt()));
 
   DOFS = new CSymProc("DOFS", tm->GetInt());
@@ -141,7 +140,6 @@ void CParser::InitSymbolTable(CSymtab *s)
   WriteLn = new CSymProc("WriteLn", tm->GetNull());
 
   WriteStr = new CSymProc("WriteStr", tm->GetNull());
-  // TODO : second tm->GetPointer should be tm->GetArray but i don't know the size of the ary
   WriteStr->AddParam(new CSymParam(0, "s", tm->GetPointer(tm->GetArray(CArrayType::OPEN, tm->GetChar())))); 
 
   s->AddSymbol(DIM);
@@ -153,7 +151,12 @@ void CParser::InitSymbolTable(CSymtab *s)
   s->AddSymbol(WriteStr);
 }
 
+// parses type and returns CType*
+// isArgument indicates whether the type is for argument of a procedure/function or not
 const CType* CParser::type(bool isArgument) {
+  // type ::= basetype | type "[" [ number ] "]"
+  // basetype ::= "boolean" | "char" | "integer"
+
   const CType* t;
   CToken basetype;
   Consume(tBaseType, &basetype);
@@ -161,56 +164,76 @@ const CType* CParser::type(bool isArgument) {
   else if(basetype.GetValue() == "char") t = CTypeManager::Get()->GetChar();
   else t = CTypeManager::Get()->GetInt(); // ensured by my scanner design
 
-  vector<int> indices;
+  // lengths = vector for storing array lengths of a type.
+  // ex) if type = integer[1][][3], then lengths = <1, OPEN, 3>
+  vector<int> lengths;
   while(true) {
     if(_scanner->Peek().GetType() != tLSqrBrak) {
+      // done reading all lengths. now construct the type and return it
       vector<int>::reverse_iterator rit;
-      for(rit = indices.rbegin(); rit != indices.rend(); rit++) {
-        t = CTypeManager::Get()->GetArray(*rit, t);
+      for(rit = lengths.rbegin(); rit != lengths.rend(); rit++) {
+        t = CTypeManager::Get()->GetArray(*rit, t); // recursively nest types
       }
 
       if(isArgument &&  t->IsArray()) {
+        // if it's for procedure/function argument and it is an array type, it should be a pointer to that type
+        // because in SnuPL/1, complex objects are dereferenced when passed to a function as an argument
         t = CTypeManager::Get()->GetPointer(t);
       }
-      return t;
+      break; // break to return
     }
     Consume(tLSqrBrak);
     if(_scanner->Peek().GetType() != tRSqrBrak) {
+      // "[" is not immediately closed by "]", so we should expect a number
       CAstConstant* num = number();
-      indices.push_back(num->GetValue());
+      // number() guarantees that it will generate appropriate error when it reads a non-number token
+      // array length = num
+      lengths.push_back(num->GetValue());
       Consume(tRSqrBrak);
     } else {
+      // "[" is closed immediately by "]", so we assume it is OPEN length
+      // array length = OPEN
       int open = CArrayType::OPEN;
-      indices.push_back(open);
+      lengths.push_back(open);
       Consume(tRSqrBrak);
     }
   }
-
 
   return t;
 }
 
+// parses varDecl and saves them in symbol table of scope s
 void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
-  // varDecl = ident { "," ident } ":" type
+  // varDecl ::= ident { "," ident } ":" type
+
+  // vars = vector for storing all given idents
   vector<CToken> vars;
-  while(true) {
+  while(true) { // reads idents (and commas inbetween) until ":" appears
     CToken var;
     Consume(tIdent, &var);
-    vars.push_back(var);
+    vars.push_back(var); // saves the ident
     if(_scanner->Peek().GetType() == tColon) break;
     Consume(tComma);
   }
   Consume(tColon);
-  const CType* typ = type(symproc != NULL); // TODO : mind that assume symproc != NULL -> varDecl() is called for argument
+
+  // if symproc is not NULL, the caller expects these variables to be a parameter of a procedure/function
+  // so we pass isArgument=true to type(). otherwise we pass false
+  const CType* typ = type(symproc != NULL);
 
   vector<CToken>::iterator iter;
-  int index = 0;
+  int index = 0; // index for creating a parameter symbol
+  if(symproc) index = symproc->GetNParams(); // if n params exist, we start indexing from n
   for(iter = vars.begin(); iter != vars.end(); iter++) {
+    // if the scope has a local variable with the same name, it is already an error (duplicate)
     if(s->GetSymbolTable()->FindSymbol(iter->GetValue(), sLocal) != NULL)
       SetError(*iter, "duplicate variable declaration '" + iter->GetValue() + "'.");
     
     CSymbol *sym;
     if(isGlobal) { // symbol is global
+      // if global variable with the same name exists, it is a duplicate declaration
+      if(s->GetSymbolTable()->FindSymbol(iter->GetValue(), sGlobal) != NULL)
+        SetError(*iter, "duplicate variable declaration '" + iter->GetValue() + "'.");
       sym = new CSymGlobal(iter->GetValue(), typ);
     } else if(symproc)  { // symbol is param
       sym = new CSymParam(index, iter->GetValue(), typ);
@@ -220,29 +243,41 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
     
     s->GetSymbolTable()->AddSymbol(sym);
     if(symproc) {
+      // if symproc is not null, the caller expects these variables to be added as a parameter to that procedure
       symproc->AddParam(new CSymParam(index, iter->GetValue(), typ));
     }
     index++;
   }
 }
 
+// parses varDeclSequence and saves them in symbol table of scope s
 void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc) {
   // varDeclSequence ::= varDecl { ";" varDecl }
-  while(true) {
+
+  while(true) { // reads varDecl until the next thing doesn't appear to be varDecl
     varDecl(s, isGlobal, symproc);
     if(_scanner->Peek().GetType() != tSemicolon) return;
     Consume(tSemicolon);
+    // problem : FOLLOW(varDeclSequence) is also ";". how do we know when to end?
+    // solution : read one more. 
+    // If next token is tIdent, we need to go to varDecl. 
+    // Else we end because tIdent is not one of FOLLOW(varDeclaration) = {"begin", "procedure", "function"}
     if(_scanner->Peek().GetType() != tIdent ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
   }
 }
 
+// parses varDeclaration and saves them in symbol table of scope s
 void CParser::varDeclaration(CAstScope* s, bool isGlobal) {
   // varDeclaration ::= [ "var" varDeclSequence ";" ]
+
+  // tVar is not one of FOLLOW(varDeclaration) = {"begin", "procedure", "function"}
+  // so if we see "var", we assume varDeclaration (the whole thing) appears
+  // otherwise, we assume it doesn't
   if(_scanner->Peek().GetType() != tVar) return;
 
   Consume(tVar);
   varDeclSequence(s, isGlobal);
-  //Consume(tSemicolon);    varDeclSequence eats this
+  //Consume(tSemicolon);  don't eat ";" because varDeclSequence() eats it
 }
 
 CAstModule* CParser::module(void)

@@ -95,10 +95,26 @@ class CParser {
     /// @name methods for recursive-descent parsing
     /// @{
     
+    /// @brief parses type and returns CType*
+    /// @param isArgument whether the type is for argument of a procedure/function or not
     const CType*      type(bool isArgument);
 
+    /// @brief parses varDecl and saves them in symbol table of scope s
+    /// @param s CAstScope in which symbol table we store the declared variables
+    /// @param isGlobal optional argument that indicates whether the variables are meant to be global
+    /// @param symproc optionally given when we should also store the variables as parameters of a procedure/function
     void              varDecl(CAstScope *s, bool isGlobal=false, CSymProc *symproc = NULL);
+
+    /// @brief parses varDeclSequence and saves them in symbol table of scope s
+    /// @param s CAstScope in which symbol table we store the declared variables
+    /// @param isGlobal optional argument that indicates whether the variables are meant to be global
+    /// @param symproc optionally given when we should also store the variables as parameters of a procedure/function
     void              varDeclSequence(CAstScope *s, bool isGlobal=false, CSymProc *symproc = NULL);
+
+    /// @brief parses varDeclaration and saves them in symbol table of scope s
+    /// @param s CAstScope in which symbol table we store the declared variables
+    /// @param isGlobal optional argument that indicates whether the variables are meant to be global
+    /// @param symproc optionally given when we should also store the variables as parameters of a procedure/function
     void              varDeclaration(CAstScope *s, bool isGlobal=false);
 
     void              formalParam(CAstScope *s, CSymProc *symproc = NULL);
