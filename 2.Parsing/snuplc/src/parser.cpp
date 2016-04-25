@@ -228,7 +228,7 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
     // if the scope has a local variable with the same name, it is already an error (duplicate)
     if(s->GetSymbolTable()->FindSymbol(iter->GetValue(), sLocal) != NULL)
       SetError(*iter, "duplicate variable declaration '" + iter->GetValue() + "'.");
-    
+
     CSymbol *sym;
     if(isGlobal) { // symbol is global
       // if global variable with the same name exists, it is a duplicate declaration
@@ -598,8 +598,9 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
 
   n = term(s);
   DEBUG(cout << "after term returns to simplexpr" << endl;)
+  CAstConstant *constant = dynamic_cast<CAstConstant*>(n);
   if(unary) {
-    if(CAstConstant *constant = dynamic_cast<CAstConstant*>(n)) {
+    if(constant != NULL && constant->GetType()->IsInt()) {
       if(unaryOp == opNeg) {
         constant->SetValue(-constant->GetValue());
       }
