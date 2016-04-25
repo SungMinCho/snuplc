@@ -177,7 +177,7 @@ const CType* CParser::type(bool isArgument) {
 
       if(isArgument &&  t->IsArray()) {
         // if it's for procedure/function argument and it is an array type, it should be a pointer to that type
-        // because in SnuPL/1, complex objects are dereferenced when passed to a function as an argument
+        // because in SnuPL/1, complex objects are referenced when passed to a function as an argument
         t = CTypeManager::Get()->GetPointer(t);
       }
       break; // break to return
@@ -203,6 +203,8 @@ const CType* CParser::type(bool isArgument) {
 }
 
 // parses varDecl and saves them in symbol table of scope s
+// isGlobal is optionally given to indicate whether the variables are declared globally
+// symproc is optionally given when we should also store the variables as parameters of a procedure/function
 void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
   // varDecl ::= ident { "," ident } ":" type
 
@@ -251,6 +253,8 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
 }
 
 // parses varDeclSequence and saves them in symbol table of scope s
+// isGlobal is optionally given to indicate whether the variables are declared globally
+// symproc is optionally given when we should also store the variables as parameters of a procedure/function
 void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc) {
   // varDeclSequence ::= varDecl { ";" varDecl }
 
@@ -267,6 +271,7 @@ void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc) {
 }
 
 // parses varDeclaration and saves them in symbol table of scope s
+// isGlobal indicates whether the variables are declared globally
 void CParser::varDeclaration(CAstScope* s, bool isGlobal) {
   // varDeclaration ::= [ "var" varDeclSequence ";" ]
 
@@ -330,6 +335,8 @@ CAstModule* CParser::module(void)
 }
 
 // parses formalParam of procedure/function
+// s is the procedure/function scope in which we should save symbols of parameters
+// symproc is the CSymProc of the procedure/function in which we should add parameter types
 void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
   // formalParam ::= "(" [ varDeclSequence ] ")"
 
@@ -341,6 +348,7 @@ void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
 }
 
 // parses subroutineDecl and returns CAstProcedure* for it
+// s is the module scope where this subroutine belongs
 CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
   // subroutineDecl ::= (procedureDecl | functionDecl) subroutineBody ident ";"
   // procedureDecl ::= "procedure" ident [ formalParam ] ";"
@@ -421,6 +429,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
 }
 
 // parses subroutineBody and returns CAstStatement* for it
+// s is the scope of the procedure where this body belongs
 CAstStatement* CParser::subroutineBody(CAstScope *s) {
   // subroutineBody ::= varDeclaration "begin" statSequence "end"
 
@@ -432,6 +441,7 @@ CAstStatement* CParser::subroutineBody(CAstScope *s) {
 }
 
 // parses statSequence and returns CAstStatement* for it
+// s is the scope where statements belong
 CAstStatement* CParser::statSequence(CAstScope *s)
 {
   //
@@ -451,24 +461,31 @@ CAstStatement* CParser::statSequence(CAstScope *s)
   if(_scanner->Peek().GetType() == tEnd ||
      _scanner->Peek().GetType() == tElse) return NULL;
 
-  CAstStatement *stat = NULL;
-  CAstStatement *tail = NULL;
+  CAstStatement *stat = NULL; // head of the linked list of statements. eventually return this
+  CAstStatement *tail = NULL; // tail of the linked list of statements
 
   EToken tt = _scanner->Peek().GetType();
+  // if FOLLOW(statSequence) appears, stop
   if(tt == tEnd || tt == tElse) return stat;
 
   while(true) {
-    CAstStatement *temp;
-    if(tt == tIf) {
+    CAstStatement *temp; // to save the next statement
+    if(tt == tIf) { // ifStatement
       CToken iftoken;
       Consume(tIf, &iftoken);
       Consume(tLBrak);
-      CAstExpression* cond = expression(s);
-      Consume(tRBrak);
-      Consume(tThen);
-      CAstStatement *body = statSequence(s);
-      CAstStatement *elsebody = NULL;
 
+      // read if-condition expression
+      CAstExpression* cond = expression(s);
+
+      Consume(tRBrak);
+
+      Consume(tThen);
+      // reads if-then statement
+      CAstStatement *body = statSequence(s); // then body
+      CAstStatement *elsebody = NULL; // else body
+
+      // if "else" appears, we read if-else statement
       if(_scanner->Peek().GetType() == tElse) {
         Consume(tElse);
         elsebody = statSequence(s);
@@ -476,59 +493,65 @@ CAstStatement* CParser::statSequence(CAstScope *s)
 
       Consume(tEnd);
 
-      temp = new CAstStatIf(iftoken, cond, body, elsebody); 
-    } else if(tt == tWhile) {
+      temp = new CAstStatIf(iftoken, cond, body, elsebody); // make if AST
+    } else if(tt == tWhile) { // whileStatement
       CToken whiletoken;
       Consume(tWhile, &whiletoken);
       Consume(tLBrak);
+
+      // read while-condition expression
       CAstExpression* cond = expression(s);
+
       Consume(tRBrak);
+
       Consume(tDo);
+      // read while-do statement
       CAstStatement* body = statSequence(s);
+
       Consume(tEnd);
 
-      temp = new CAstStatWhile(whiletoken, cond, body);
-    } else if(tt == tReturn) {
-      // FOLLOW(returnStatement) = { ";" } + FOLLOW(statSequence) ?
+      temp = new CAstStatWhile(whiletoken, cond, body); // make while AST
+    } else if(tt == tReturn) { //returnStatement
+      // FOLLOW(returnStatement) = { ";" } + FOLLOW(statSequence)
       CToken returntoken;
       Consume(tReturn, &returntoken);
 
       CAstExpression* returnexpr = NULL;
       EToken ttt = _scanner->Peek().GetType();
-      if(!(ttt == tSemicolon || ttt == tEnd || ttt == tElse)) { // TODO : correct condition?
+      // reads return expression if we don't see FOLLOW(returnStatement)
+      if(!(ttt == tSemicolon || ttt == tEnd || ttt == tElse)) {
         returnexpr = expression(s);
       }
 
-      temp = new CAstStatReturn(returntoken, s, returnexpr);
+      temp = new CAstStatReturn(returntoken, s, returnexpr); // make return AST
     } else if(tt == tIdent) {
       CToken id;
       Consume(tIdent, &id);
       EToken ttt = _scanner->Peek().GetType();
-      if(ttt == tLSqrBrak || ttt == tAssign) {
-        // assignment
+      if(ttt == tLSqrBrak || ttt == tAssign) { // assignment
         
-        // read qualident ...
+        // read qualident (lhs)
         CAstExpression* lhs = qualident(s, id); 
 
         Consume(tAssign);
 
+        // read rhs expression
         CAstExpression* rhs = expression(s);
 
-        temp = new CAstStatAssign(id, lhs, rhs);
-      } else if(ttt == tLBrak) {
-        // subroutineCall
+        temp = new CAstStatAssign(id, lhs, rhs); // make assign AST
+      } else if(ttt == tLBrak) { // subroutineCall
         
-        temp = new CAstStatCall(id, subroutineCall(s, id));
+        temp = new CAstStatCall(id, subroutineCall(s, id)); // make call AST
       } else {
         SetError(_scanner->Peek(), "assignment or subroutineCall expected."); // TODO: not exactly the right error token. we ate the id.
       }
     } else {
-      SetError(_scanner->Peek(), "statement expected."); // same error msg as Egger's
+      SetError(_scanner->Peek(), "statement expected."); // generate error because none of the statements matched
     }
     
-    if(!stat) {
+    if(!stat) { // init statement linked list
       stat = tail = temp;
-    } else {
+    } else { // append to the statement linked list
       tail->SetNext(temp);
       tail = temp;
     }
@@ -541,28 +564,38 @@ CAstStatement* CParser::statSequence(CAstScope *s)
   }
 }
 
+// parses subroutineCall and returns CAstFunctionCall* for it
+// s is the scope where the call belongs
+// id is the ident token which is the first token of subroutineCall. it is already consumed and passed to us
 CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   // subroutineCall ::= ident "(" [ expression { "," expression } ] ")"
-  // ident is already read and given to us
  
+  // get the function symbol from the symbol table
   const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
+  // if no such symbol exists, the subroutine is not declared yet, so it is an error
   if(!sym) SetError(id, "undefined identifier.");
   const CSymProc *symproc = dynamic_cast<const CSymProc*>(sym);
+  // if symbol is not CSymProc, it is not a procedure. Therefore it is invalid identifier of a procedure
   if(!symproc) SetError(id, "invalid procedure/function identifier.");
   
-  CAstFunctionCall* func = new CAstFunctionCall(id, symproc); // TODO: NULL has to be some const CSymProc*
+  CAstFunctionCall* func = new CAstFunctionCall(id, symproc);
   
-  int index = 0;
+  int index = 0; // index of the expression as a parameter to the procedure
   Consume(tLBrak);
   while(_scanner->Peek().GetType() != tRBrak) {
     CAstExpression* expr = expression(s);
+    // if we pass an array, we have to instead pass a pointer to that array
     if(expr->GetType()->IsArray()) expr = new CAstSpecialOp(expr->GetToken(), opAddress, expr, NULL);
 
+    // adds the argument
     func->AddArg(expr);
     
+    // check whether the type of the expression matches the type that it should have as a parameter
+    // will finish this in type-checking phase
     const CSymParam* param = symproc->GetParam(index);
     if(!expr->GetType()->Match(param->GetDataType()))
       //SetError(expr->GetToken(), "argument type mismatch");
+
     index++;
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
     else break;
@@ -572,11 +605,11 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
   return func;
 }
 
+// parses expression and returns CAstExpression* for it
+// s is scope where the expression belongs
 CAstExpression* CParser::expression(CAstScope* s)
 {
-  DEBUG(cout << "expression on " << _scanner->Peek() << endl;)
-  //
-  // expression ::= simpleexpr [ relOp simpleexpression ].
+  // expression ::= simpleexpr [ relOp simpleexpr ].
   // simpleexpr ::= ["+"|"-"] term {termOp term}
   // term ::= factor {factOp factor}
   // factor ::= qualident | number | boolean | char | string | "(" expression ")" | subroutineCall | "!" factor
@@ -584,14 +617,15 @@ CAstExpression* CParser::expression(CAstScope* s)
   // subroutineCall ::= ident "(" [ expression {"," expression} ] ")"
   //
   // FIRST(expression) = { "+", "-", ident, number, boolean, char, string, "(", ident, "!" }
+
+
   CToken t;
   EOperation relop;
   CAstExpression *left = NULL, *right = NULL;
 
-  left = simpleexpr(s);
-  DEBUG(cout << "after left = simpleexpr() in expression()" << endl;)
+  left = simpleexpr(s); // read the first simpleexpr
 
-  if (_scanner->Peek().GetType() == tRelOp) {
+  if (_scanner->Peek().GetType() == tRelOp) { // simpleexpr relOp simpleexpr
     Consume(tRelOp, &t);
     right = simpleexpr(s);
 
@@ -604,16 +638,15 @@ CAstExpression* CParser::expression(CAstScope* s)
     else SetError(t, "invalid relation.");
 
     return new CAstBinaryOp(t, relop, left, right);
-  } else {
-    DEBUG(cout << "right before expression returns" << endl;)
+  } else { // simpleexpr
     return left;
   }
 }
 
+// parses simpleexpr and returns CAstExpression* for it
+// s is scope where the simpleexpr belongs
 CAstExpression* CParser::simpleexpr(CAstScope *s)
 { 
-  DEBUG(cout << "simpleexpr on " << _scanner->Peek() << endl;)
-  //
   // simpleexpr ::= term { termOp term }.
   //
   // simpleexpr ::= ["+"|"-"] term {termOp term}
@@ -671,6 +704,8 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
   return n;
 }
 
+// parses term and returns CAstExpression* for it
+// s is scope where the term belongs
 CAstExpression* CParser::term(CAstScope *s)
 {
   DEBUG(cout << "term on " << _scanner->Peek() << endl;)
@@ -708,12 +743,11 @@ CAstExpression* CParser::term(CAstScope *s)
   return n;
 }
 
+// parses qualident and returns CAstExpression* for it
+// id is the ident token which is the first token of qualident. it is already consumed and passed to us
 CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
-  DEBUG(cout << "qualident on " << _scanner->Peek() << endl;)
   // qualident ::= ident { "[" expression "]" }
-  // ident is already read and given as id
    
-  // later, i might replace below 2 lines with 1 line with just stGlobal as scope
   const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
   if(!sym) SetError(id, "undefined identifier.");
 
@@ -739,10 +773,10 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
   return n;
 }
 
+// parses factor and returns CAstExpression* for it
+// s is scope where the factor belongs
 CAstExpression* CParser::factor(CAstScope *s)
 {
-  DEBUG(cout << "factor on " << _scanner->Peek() << endl;)
-  //
   // factor ::= number | "(" expression ")"
   //
   // FIRST(factor) = { tNumber, tLBrak }
@@ -795,13 +829,10 @@ CAstExpression* CParser::factor(CAstScope *s)
   return n;
 }
 
+// parses a number and returns CAstConstant* for it
 CAstConstant* CParser::number(void)
 {
-  //
   // number ::= digit { digit }.
-  //
-  // "digit { digit }" is scanned as one token (tNumber)
-  //
 
   CToken t;
 
@@ -814,6 +845,7 @@ CAstConstant* CParser::number(void)
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }
 
+// parses a boolean and returns CAstConstant* for it
 CAstConstant* CParser::boolean(void)
 {
   // boolean ::= true | false
@@ -827,6 +859,8 @@ CAstConstant* CParser::boolean(void)
   return new CAstConstant(t, CTypeManager::Get()->GetBool(), v);
 }
 
+
+// parses a string and returns CAstConstant* for it
 CAstStringConstant* CParser::stringConstant(CAstScope* s)
 {
   // string ::=
@@ -834,7 +868,6 @@ CAstStringConstant* CParser::stringConstant(CAstScope* s)
   CToken t;
   Consume(tString, &t);
 
-//  return new CAstStringConstant(t, _scanner->unescape(t.GetValue()), s);
   return new CAstStringConstant(t, t.GetValue(), s);
 }
 

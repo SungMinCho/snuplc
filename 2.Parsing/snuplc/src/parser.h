@@ -114,7 +114,6 @@ class CParser {
     /// @brief parses varDeclaration and saves them in symbol table of scope s
     /// @param s CAstScope in which symbol table we store the declared variables
     /// @param isGlobal optional argument that indicates whether the variables are meant to be global
-    /// @param symproc optionally given when we should also store the variables as parameters of a procedure/function
     void              varDeclaration(CAstScope *s, bool isGlobal=false);
 
     /// @brief parses formalParam of procedure/function
@@ -126,27 +125,48 @@ class CParser {
     CAstModule*       module(void);
 
     /// @brief parses subroutineDecl and returns CAstProcedure* for it
-    /// @param s parent scope (module in this case)
+    /// @param s module scope where this subroutine belongs
     CAstProcedure*    subroutineDecl(CAstScope *s);
 
     /// @brief parses statSequence and returns CAstStatement* for it
-    /// @param s parent scope
+    /// @param s the scope where statements belong
     CAstStatement*    statSequence(CAstScope *s);
 
     /// @brief parses subroutineBody and returns CAstStatement* for it
-    /// @param s parent scope (in this case it is procedure where the body belongs)
+    /// @param s the scope of the procedure where this body belongs
     CAstStatement*    subroutineBody(CAstScope *s);
 
+    /// @brief parses expression and returns CAstExpression* for it
+    /// @param s scope where the expression belongs
     CAstExpression*   expression(CAstScope *s);
+
+    /// @brief parses simpleexpr and returns CAstExpression* for it
+    /// @param s scope where the simpleexpr belongs
     CAstExpression*   simpleexpr(CAstScope *s);
+
+    /// @brief parses term and returns CAstExpression* for it
+    /// @param s scope where the term belongs
     CAstExpression*   term(CAstScope *s);
+
+    /// @brief parses factor and returns CAstExpression* for it
+    /// @param s scope where the factor belongs
     CAstExpression*   factor(CAstScope *s);
 
-    CAstFunctionCall* subroutineCall(CAstScope *s, CToken id); // assume ident is already read and passed to us
-    CAstExpression*   qualident(CAstScope *s, CToken id); // assume ident is already read and passed to us
+    /// @brief parses subroutineCall and returns CAstFunctionCall* for it
+    /// @param id the ident token which is the first token of subroutineCall. it is already consumed and passed to us
+    CAstFunctionCall* subroutineCall(CAstScope *s, CToken id);
 
+    /// @brief parses qualident and returns CAstExpression* for it
+    /// @param id the ident token which is the first token of qualident. it is already consumed and passed to us
+    CAstExpression*   qualident(CAstScope *s, CToken id);
+
+    /// @brief parses a number and returns CAstConstant* for it
     CAstConstant*     number(void);
+
+    /// @brief parses a boolean and returns CAstConstant* for it
     CAstConstant*     boolean(void);
+
+    /// @brief parses a string and returns CAstStringConstant* for it
     CAstStringConstant*   stringConstant(CAstScope* s);
 
     /// @}
