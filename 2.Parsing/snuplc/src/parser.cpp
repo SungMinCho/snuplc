@@ -269,7 +269,7 @@ void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc, bo
       // If next token is tIdent, we need to go to varDecl. 
       // Else we end because tIdent is not one of FOLLOW(varDeclaration) = {"begin", "procedure", "function"}
       if(_scanner->Peek().GetType() != tIdent ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
-    } else { // called from formalParam. in this case ";" always belongs to varDecl
+    } else { // called from formalParam. in this case ";" always belongs to { ";" varDecl }
       if(_scanner->Peek().GetType() != tSemicolon) return;
       Consume(tSemicolon);
     }
