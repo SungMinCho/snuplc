@@ -261,7 +261,6 @@ void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc, bo
 
   while(true) { // reads varDecl until the next thing doesn't appear to be varDecl
     varDecl(s, isGlobal, symproc);
-    if(_scanner->Peek().GetType() != tSemicolon) return;
     if(!fromFormalParam) {
       Consume(tSemicolon);
       // problem : FOLLOW(varDeclSequence) is also ";". how do we know when to end?
