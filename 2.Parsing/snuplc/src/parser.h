@@ -110,7 +110,7 @@ class CParser {
     /// @param s CAstScope in which symbol table we store the declared variables
     /// @param isGlobal optional argument that indicates whether the variables are meant to be global
     /// @param symproc optionally given when we should also store the variables as parameters of a procedure/function
-    void              varDeclSequence(CAstScope *s, bool isGlobal=false, CSymProc *symproc = NULL);
+    void              varDeclSequence(CAstScope *s, bool isGlobal=false, CSymProc *symproc = NULL, bool fromFormalParam=false);
 
     /// @brief parses varDeclaration and saves them in symbol table of scope s
     /// @param s CAstScope in which symbol table we store the declared variables

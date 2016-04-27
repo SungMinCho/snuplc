@@ -256,18 +256,23 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
 // parses varDeclSequence and saves them in symbol table of scope s
 // isGlobal is optionally given to indicate whether the variables are declared globally
 // symproc is optionally given when we should also store the variables as parameters of a procedure/function
-void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc) {
+void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc, bool fromFormalParam) {
   // varDeclSequence ::= varDecl { ";" varDecl }
 
   while(true) { // reads varDecl until the next thing doesn't appear to be varDecl
     varDecl(s, isGlobal, symproc);
     if(_scanner->Peek().GetType() != tSemicolon) return;
-    Consume(tSemicolon);
-    // problem : FOLLOW(varDeclSequence) is also ";". how do we know when to end?
-    // solution : read one more. 
-    // If next token is tIdent, we need to go to varDecl. 
-    // Else we end because tIdent is not one of FOLLOW(varDeclaration) = {"begin", "procedure", "function"}
-    if(_scanner->Peek().GetType() != tIdent ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
+    if(!fromFormalParam) {
+      Consume(tSemicolon);
+      // problem : FOLLOW(varDeclSequence) is also ";". how do we know when to end?
+      // solution : read one more. 
+      // If next token is tIdent, we need to go to varDecl. 
+      // Else we end because tIdent is not one of FOLLOW(varDeclaration) = {"begin", "procedure", "function"}
+      if(_scanner->Peek().GetType() != tIdent ) return; // in this case, the semicolon we've eaten belongs to varDeclaration
+    } else { // called from formalParam. in this case ";" always belongs to varDecl
+      if(_scanner->Peek().GetType() != tSemicolon) return;
+      Consume(tSemicolon);
+    }
   }
 }
 
@@ -344,7 +349,8 @@ void CParser::formalParam(CAstScope *s, CSymProc *symproc) {
   Consume(tLBrak);
   // if varDeclSequence appears, we will be able to see tIdent appear
   if(_scanner->Peek().GetType() == tIdent)
-    varDeclSequence(s, false, symproc); // isGlobal=false because parameters are local
+    varDeclSequence(s, false, symproc, true); // isGlobal=false because parameters are local
+                                              // fromFormalParam=true because it is
   Consume(tRBrak);
 }
 
