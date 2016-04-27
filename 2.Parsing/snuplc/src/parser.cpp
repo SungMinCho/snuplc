@@ -710,9 +710,6 @@ CAstExpression* CParser::simpleexpr(CAstScope *s)
 CAstExpression* CParser::term(CAstScope *s)
 {
   DEBUG(cout << "term on " << _scanner->Peek() << endl;)
-  //
-  // term ::= factor { ("*"|"/") factor }.
-  //
   // term ::= factor { factOp factor }.
   //
   CAstExpression *n = NULL;
@@ -758,16 +755,13 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
     n = new CAstDesignator(id, sym);
   } else {
     CAstArrayDesignator* var = new CAstArrayDesignator(id, sym);
-    //if(var->GetType() == NULL) cout << "var type NULL create" << endl;
     while(_scanner->Peek().GetType() == tLSqrBrak) {
       Consume(tLSqrBrak);
       CAstExpression* expr = expression(s);
       var->AddIndex(expr);
       Consume(tRSqrBrak);
     }
-    //if(var->GetType() == NULL) cout << "var type NULL before" << endl;
     var->IndicesComplete();
-    //if(var->GetType() == NULL) cout << "var type NULL after" << endl;
     n = var;
   }
 
