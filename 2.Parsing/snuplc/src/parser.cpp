@@ -116,6 +116,7 @@ bool CParser::Consume(EToken type, CToken *token)
   return t.GetType() == type;
 }
 
+// initialize symbol table with predefined functions
 void CParser::InitSymbolTable(CSymtab *s)
 {
   CTypeManager *tm = CTypeManager::Get();
@@ -795,7 +796,11 @@ CAstExpression* CParser::factor(CAstScope *s)
     n = boolean();
   } else if(tt == tCharacter) {
     Consume(tCharacter, &t);
-    n = new CAstConstant(t, CTypeManager::Get()->GetChar(), (int)_scanner->unescape(t.GetValue())[0]);
+    string str = _scanner->unescape(t.GetValue());
+    int val;
+    if(str.size() == 0) val = 0;
+    else val = (int)(str[0]);
+    n = new CAstConstant(t, CTypeManager::Get()->GetChar(), val);
   } else if(tt == tString) {
     n = stringConstant(s);
     DEBUG(cout << "after n = stringConstant(s)" << endl;)
