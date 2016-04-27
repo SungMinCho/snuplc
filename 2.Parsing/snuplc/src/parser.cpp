@@ -256,6 +256,7 @@ void CParser::varDecl(CAstScope* s, bool isGlobal, CSymProc* symproc) {
 // parses varDeclSequence and saves them in symbol table of scope s
 // isGlobal is optionally given to indicate whether the variables are declared globally
 // symproc is optionally given when we should also store the variables as parameters of a procedure/function
+// fromFormalParam indicates whether this was called while parsing formalParam 
 void CParser::varDeclSequence(CAstScope* s, bool isGlobal, CSymProc *symproc, bool fromFormalParam) {
   // varDeclSequence ::= varDecl { ";" varDecl }
 
