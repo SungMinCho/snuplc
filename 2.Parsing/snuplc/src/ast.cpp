@@ -409,7 +409,16 @@ bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
   }
   if(_lhs->GetType()->IsScalar() == false) {
     if(t != NULL) *t = GetToken();
-    if(msg != NULL) *msg = "assign to non-scalar type";
+    if(msg != NULL) {
+      ostringstream ss;
+      ss << "assignments to compound types are not supported.";
+      ss << "\n  LHS: ";
+      _lhs->GetType()->print(ss, 0);
+      ss << "\n  RHS: ";
+      _rhs->GetType()->print(ss, 0);
+
+      *msg = ss.str();
+    }
     return false;
   }
   return true;
@@ -878,9 +887,19 @@ CAstExpression* CAstBinaryOp::GetRight(void) const
 
 bool CAstBinaryOp::TypeCheck(CToken *t, string *msg) const
 {
+  if(!(_left->TypeCheck(t, msg) && _right->TypeCheck(t, msg))) return false;
   if(GetType()) return true;
   if(t != NULL) *t = GetToken(); 
-  if(msg != NULL) *msg = "Invalid binary operation (type mismatch)";
+  if(msg != NULL) {
+    ostringstream ss;
+    ss << GetOperation();
+    ss << ": type mismatch.";
+    ss << "\n  left  operand: ";
+    _left->GetType()->print(ss, 0);
+    ss << "\n  right operand: ";
+    _right->GetType()->print(ss, 0);
+    *msg = ss.str();
+  }
   return false;
 }
 
@@ -978,6 +997,7 @@ CAstExpression* CAstUnaryOp::GetOperand(void) const
 
 bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
 {
+  if(!_operand->TypeCheck(t, msg)) return false;
   if(GetType()) return true;
   if(t != NULL) *t = GetToken(); 
   if(msg != NULL) *msg = "Invalid unary operation (type mismatch)";
@@ -1057,6 +1077,7 @@ CAstExpression* CAstSpecialOp::GetOperand(void) const
 
 bool CAstSpecialOp::TypeCheck(CToken *t, string *msg) const
 {
+  if(!_operand->TypeCheck(t, msg)) return false;
   if(GetType()) return true;
   if(t != NULL) *t = GetToken(); 
   if(msg != NULL) *msg = "Invalid special loperation (type mismatch)";
@@ -1144,11 +1165,11 @@ bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
 {
   if(GetNArgs() < _symbol->GetNParams()) {
     if(t != NULL) *t = GetToken();
-    if(msg != NULL) *msg = "arguments too few.";
+    if(msg != NULL) *msg = "not enough arguments.";
     return false;
   } else if(GetNArgs() > _symbol->GetNParams()) {
     if(t != NULL) *t = GetToken();
-    if(msg != NULL) *msg = "arguments too many.";
+    if(msg != NULL) *msg = "too many arguments.";
     return false;
   }
 
