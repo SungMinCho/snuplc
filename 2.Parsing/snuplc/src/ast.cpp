@@ -399,15 +399,15 @@ CAstExpression* CAstStatAssign::GetRHS(void) const
 
 bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
 {
-  if(_lhs->TypeCheck(t, msg) && _rhs->TypeCheck(t, msg) == false) {
+  if(!(_lhs->TypeCheck(t, msg) && _rhs->TypeCheck(t, msg))) {
     return false;
   }
-  if(_lhs->GetType()->Match(_rhs->GetType()) == false) {
+  if(!_lhs->GetType()->Match(_rhs->GetType())!) {
     if(t != NULL) *t = GetToken();
     if(msg != NULL) *msg = "assign to different type";
     return false;
   }
-  if(_lhs->GetType()->IsScalar() == false) {
+  if(!_lhs->GetType()->IsScalar()) {
     if(t != NULL) *t = GetToken();
     if(msg != NULL) {
       ostringstream ss;
