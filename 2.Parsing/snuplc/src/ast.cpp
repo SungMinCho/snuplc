@@ -1179,7 +1179,15 @@ bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
     if(!GetArg(i)->TypeCheck(t, msg)) return false;
     if(!GetArg(i)->GetType()->Match(_symbol->GetParam(i)->GetDataType())) {
       if(t != NULL) *t = GetToken();
-      if(msg != NULL) *msg = "type mismatch at parameter " + to_string(i);
+      if(msg != NULL) {
+        ostringstream ss;
+        ss << "parameter " << (i+1) << ": " << "argument type mismatch.";
+        ss << "\n  expected ";
+        _symbol->GetParam(i)->GetDataType()->print(ss, 0);
+        ss << "\n  got      ";
+        GetArg(i)->GetType()->print(ss,0);
+        *msg = ss.str();
+      }
       return false;
     }
   }
