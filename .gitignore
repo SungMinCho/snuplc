@@ -18,5 +18,6 @@
 2.Parsing/strangetest/**/*.dot
 2.Parsing/helltest/**/*.dot
 2.Parsing/semicolontest/**/*.dot
+2.Parsing/semtest/**/*.dot
 
 2.Parsing/result/
