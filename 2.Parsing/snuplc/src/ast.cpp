@@ -402,7 +402,7 @@ bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
   if(!(_lhs->TypeCheck(t, msg) && _rhs->TypeCheck(t, msg))) {
     return false;
   }
-  if(!_lhs->GetType()->Match(_rhs->GetType())!) {
+  if(!_lhs->GetType()->Match(_rhs->GetType())) {
     if(t != NULL) *t = GetToken();
     if(msg != NULL) *msg = "assign to different type";
     return false;
