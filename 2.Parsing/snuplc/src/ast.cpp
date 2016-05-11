@@ -1366,7 +1366,7 @@ bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
 
   if(!GetType()) {
     if(t != NULL) *t = GetToken();
-    if(msg != NULL) *msg = "Invalid array expression.";
+    if(msg != NULL) *msg = "invalid array expression.";
     return false;
   }
 
