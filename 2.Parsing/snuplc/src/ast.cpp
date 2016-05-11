@@ -1377,7 +1377,7 @@ bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
 
     if(!e->GetType()->IsInt()) {
       if(t != NULL) *t = e->GetToken();
-      if(msg != NULL) *msg = "array indexing by non-integer";
+      if(msg != NULL) *msg = "invalid array index expression.";
       return false;
     }
   }
