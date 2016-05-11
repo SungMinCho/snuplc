@@ -1000,7 +1000,14 @@ bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
   if(!_operand->TypeCheck(t, msg)) return false;
   if(GetType()) return true;
   if(t != NULL) *t = GetToken(); 
-  if(msg != NULL) *msg = "Invalid unary operation (type mismatch)";
+  if(msg != NULL) {
+    ostringstream ss;
+    ss << GetOperation();
+    ss << ": type mismatch.";
+    ss << "\n  operand:       ";
+    _operand->GetType()->print(ss, 0);
+    *msg = ss.str();
+  }
   return false;
 }
 
