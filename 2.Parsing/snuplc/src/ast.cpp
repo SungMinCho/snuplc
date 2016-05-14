@@ -1185,7 +1185,7 @@ bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
   for(i = 0; i < arg_len; i++) {
     if(!GetArg(i)->TypeCheck(t, msg)) return false;
     if(!_symbol->GetParam(i)->GetDataType()->Match(GetArg(i)->GetType())) {
-      if(t != NULL) *t = GetToken();
+      if(t != NULL) *t = GetArg(i)->GetToken();
       if(msg != NULL) {
         ostringstream ss;
         ss << "parameter " << (i+1) << ": " << "argument type mismatch.";
