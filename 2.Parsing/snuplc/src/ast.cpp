@@ -1490,7 +1490,7 @@ bool CAstConstant::TypeCheck(CToken *t, string *msg) const
 {
   if(_type->IsInt() && (_value < -2147483648 || _value > 2147483647)) {
     if(t != NULL) *t = GetToken();
-    if(msg != NULL) *msg = "integer value out of range.";
+    if(msg != NULL) *msg = "integer constant outside valid range.";
     return false;
   }
   return true;
