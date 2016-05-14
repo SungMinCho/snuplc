@@ -194,6 +194,10 @@ const CType* CParser::type(bool isArgument) {
     } else {
       // "[" is closed immediately by "]", so we assume it is OPEN length
       // array length = OPEN
+      if(!isArgument) {
+        // if this is not an argument, declaration of open sized arrays are not allowed.
+        Consume(tNumber); // consume number to cause error
+      }
       int open = CArrayType::OPEN;
       lengths.push_back(open);
       Consume(tRSqrBrak);
