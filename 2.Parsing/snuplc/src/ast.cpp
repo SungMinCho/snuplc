@@ -1006,6 +1006,7 @@ bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
     ss << ": type mismatch.";
     ss << "\n  operand:       ";
     _operand->GetType()->print(ss, 0);
+    ss << "\n";
     *msg = ss.str();
   }
   return false;
