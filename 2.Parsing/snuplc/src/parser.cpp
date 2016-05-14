@@ -408,7 +408,7 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
 
     Consume(tColon);
 
-    const CType* typ = type(true); // read the return type. isArgument=false because it isn't an argument 
+    const CType* typ = type(false); // read the return type. isArgument=false because it isn't an argument 
     symproc->SetDataType(typ); // adjust the return type of the function
 
     Consume(tSemicolon);
