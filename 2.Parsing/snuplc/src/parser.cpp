@@ -548,12 +548,13 @@ CAstStatement* CParser::statSequence(CAstScope *s)
         // read qualident (lhs)
         CAstExpression* lhs = qualident(s, id); 
 
-        Consume(tAssign);
+        CToken assignToken;
+        Consume(tAssign, &assignToken);
 
         // read rhs expression
         CAstExpression* rhs = expression(s);
 
-        temp = new CAstStatAssign(id, lhs, rhs); // make assign AST
+        temp = new CAstStatAssign(assignToken, lhs, rhs); // make assign AST
       } else if(ttt == tLBrak) { // subroutineCall
         
         temp = new CAstStatCall(id, subroutineCall(s, id)); // make call AST
