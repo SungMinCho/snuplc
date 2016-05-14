@@ -29,8 +29,8 @@ def main():
         total += 1
         f = os.path.join(root, f)
         with open("ref", "w") as refout, open("you", "w") as youout:
-          print("running", f)
-          print("diff reference and yours")
+          #print("running", f)
+          #print("diff reference and yours")
 
           ref = subprocess.Popen(["./reference/test_parser", f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
           refout.write(ref.stdout.read().decode())
@@ -63,7 +63,9 @@ def main():
 
         if cnt == 0:
           success += 1
-          print("all same")
+          #print("all same")
+        else:
+          print("above differences at file : ", f)
 
         subprocess.Popen(["rm", "ref"]).communicate()
         subprocess.Popen(["rm", "you"]).communicate()
