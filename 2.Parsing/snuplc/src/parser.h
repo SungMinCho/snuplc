@@ -98,7 +98,7 @@ class CParser {
     /// @brief parses type and returns CType*
     /// @param isArgument whether the type is for argument of a procedure/function or not
     /// @retval const CType * parsed type
-    const CType*      type(bool isArgument);
+    const CType*      type(bool isArgument, bool isReturnType=false);
 
     /// @brief parses varDecl and saves them in symbol table of scope s
     /// @param s CAstScope in which symbol table we store the declared variables

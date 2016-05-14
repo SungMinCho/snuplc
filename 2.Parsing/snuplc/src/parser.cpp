@@ -154,7 +154,7 @@ void CParser::InitSymbolTable(CSymtab *s)
 
 // parses type and returns CType*
 // isArgument indicates whether the type is for argument of a procedure/function or not
-const CType* CParser::type(bool isArgument) {
+const CType* CParser::type(bool isArgument, bool isReturnType) {
   // type ::= basetype | type "[" [ number ] "]"
   // basetype ::= "boolean" | "char" | "integer"
 
@@ -204,6 +204,9 @@ const CType* CParser::type(bool isArgument) {
     }
   }
 
+  if(isReturnType && !(t->IsScalar() || t->IsNull())) { // return type of function shouldn't be composite
+    SetError(basetype, "invalid composite type for function.");
+  }
   return t;
 }
 
@@ -408,7 +411,8 @@ CAstProcedure* CParser::subroutineDecl(CAstScope *s) {
 
     Consume(tColon);
 
-    const CType* typ = type(false); // read the return type. isArgument=false because it isn't an argument 
+    const CType* typ = type(false, true); // read the return type. isArgument=false because it isn't an argument 
+                                          // isReturnType=true because it is return type
     symproc->SetDataType(typ); // adjust the return type of the function
 
     Consume(tSemicolon);
