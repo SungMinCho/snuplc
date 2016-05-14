@@ -20,4 +20,5 @@
 2.Parsing/semicolontest/**/*.dot
 2.Parsing/semtest/**/*.dot
 
+2.Parsing/tests/**/*.dot
 2.Parsing/result/
