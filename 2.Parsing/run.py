@@ -45,6 +45,7 @@ def main():
           youlines = youin.readlines()
           for i in range(len(reflines)):
             reflines[i] = reflines[i].replace('tRBrak', 'tRSqrBrak')
+            reflines[i] = reflines[i].replace('tVarDecl', 'tVar')
 
           d = difflib.Differ()
           diff = d.compare(reflines, youlines)
