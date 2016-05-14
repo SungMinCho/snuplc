@@ -1184,7 +1184,7 @@ bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
   int i;
   for(i = 0; i < arg_len; i++) {
     if(!GetArg(i)->TypeCheck(t, msg)) return false;
-    if(!GetArg(i)->GetType()->Match(_symbol->GetParam(i)->GetDataType())) {
+    if(!_symbol->GetParam(i)->GetDataType()->Match(GetArg(i)->GetType())) {
       if(t != NULL) *t = GetToken();
       if(msg != NULL) {
         ostringstream ss;
