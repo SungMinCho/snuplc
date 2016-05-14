@@ -600,12 +600,6 @@ CAstFunctionCall* CParser::subroutineCall(CAstScope* s, CToken id) {
 
     // adds the argument
     func->AddArg(expr);
-    
-    // check whether the type of the expression matches the type that it should have as a parameter
-    // will finish this in type-checking phase
-    const CSymParam* param = symproc->GetParam(index);
-    //if(!expr->GetType()->Match(param->GetDataType()))
-      //SetError(expr->GetToken(), "argument type mismatch");
 
     index++;
     if(_scanner->Peek().GetType() == tComma) Consume(tComma);
