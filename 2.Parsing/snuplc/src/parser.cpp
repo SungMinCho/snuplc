@@ -755,6 +755,7 @@ CAstExpression* CParser::qualident(CAstScope *s, CToken id) {
    
   const CSymbol* sym = s->GetSymbolTable()->FindSymbol(id.GetValue(), sGlobal);
   if(!sym) SetError(id, "undefined identifier.");
+  if(dynamic_cast<const CSymProc*>(sym)) SetError(id, "designator expected."); // shouldn't use function as designator
 
   CAstExpression* n;
   EToken ttt = _scanner->Peek().GetType();
