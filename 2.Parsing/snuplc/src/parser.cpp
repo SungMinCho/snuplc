@@ -571,11 +571,9 @@ CAstStatement* CParser::statSequence(CAstScope *s)
       tail = temp;
     }
 
-    if(_scanner->Peek().GetType() == tSemicolon) {
-      Consume(tSemicolon);
-      tt = _scanner->Peek().GetType();
-    }
-    else return stat;
+    if(_scanner->Peek().GetType() == tEnd || _scanner->Peek().GetType() == tElse) return stat;
+    Consume(tSemicolon);
+    tt = _scanner->Peek().GetType();
   }
 }
 
