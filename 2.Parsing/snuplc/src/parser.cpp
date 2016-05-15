@@ -848,6 +848,7 @@ CAstConstant* CParser::number(void)
   errno = 0;
   long long v = strtoll(t.GetValue().c_str(), NULL, 10);
   if (errno != 0) SetError(t, "invalid number.");
+  if (v < -2147483648 || v > 2147483648) SetError(t, "integer constant outside valid range.");
 
   return new CAstConstant(t, CTypeManager::Get()->GetInt(), v);
 }
