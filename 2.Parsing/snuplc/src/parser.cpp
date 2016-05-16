@@ -154,6 +154,7 @@ void CParser::InitSymbolTable(CSymtab *s)
 
 // parses type and returns CType*
 // isArgument indicates whether the type is for argument of a procedure/function or not
+// isReturnType indicates whether the type is for return type of procedure/function
 const CType* CParser::type(bool isArgument, bool isReturnType) {
   // type ::= basetype | type "[" [ number ] "]"
   // basetype ::= "boolean" | "char" | "integer"

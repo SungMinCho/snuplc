@@ -1103,10 +1103,19 @@ CAstExpression* CAstSpecialOp::GetOperand(void) const
 bool CAstSpecialOp::TypeCheck(CToken *t, string *msg) const
 {
   if(!_operand->TypeCheck(t, msg)) return false;
-  if(GetType()) return true;
-  if(t != NULL) *t = GetToken(); 
-  if(msg != NULL) *msg = "Invalid special loperation (type mismatch)";
-  return false;
+  if(!GetType()) {
+    // if GetType is NULL, it implies that operation was invalid
+    if(t != NULL) *t = GetToken();
+    if(msg != NULL) *msg = "Invalid special operation";
+    return false;
+  }
+  if(GetOperation() == opAddress && !GetOperand()->GetType()->IsArray()) {
+    // we don't support pointer to something that's not an array
+    if(t != NULL) *t = GetToken();
+    if(msg != NULL) *msg = "We only support pointer to array";
+    return false;
+  }
+  return true;
 }
 
 const CType* CAstSpecialOp::GetType(void) const
@@ -1115,6 +1124,7 @@ const CType* CAstSpecialOp::GetType(void) const
     if(GetOperand()->GetType() == NULL) return NULL;
     return CTypeManager::Get()->GetPointer(GetOperand()->GetType());
   }
+  // we don't support opDeref nor opCast, so we just return NULL
   return NULL;
 }
 
@@ -1189,10 +1199,12 @@ CAstExpression* CAstFunctionCall::GetArg(int index) const
 bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
 {
   if(GetNArgs() < _symbol->GetNParams()) {
+    // number of given arguments are less than what is expected
     if(t != NULL) *t = GetToken();
     if(msg != NULL) *msg = "not enough arguments.";
     return false;
   } else if(GetNArgs() > _symbol->GetNParams()) {
+    // number of given arguments are more than what is expected
     if(t != NULL) *t = GetToken();
     if(msg != NULL) *msg = "too many arguments.";
     return false;
@@ -1201,8 +1213,10 @@ bool CAstFunctionCall::TypeCheck(CToken *t, string *msg) const
   int arg_len = GetNArgs();
   int i;
   for(i = 0; i < arg_len; i++) {
-    if(!GetArg(i)->TypeCheck(t, msg)) return false;
+    if(!GetArg(i)->TypeCheck(t, msg)) return false; // run its own TypeCheck
     if(!_symbol->GetParam(i)->GetDataType()->Match(GetArg(i)->GetType())) {
+      // symbol's type should match argument's type
+      // note the direction of match (int[] matches int[5] but not backwards)
       if(t != NULL) *t = GetArg(i)->GetToken();
       if(msg != NULL) {
         ostringstream ss;
@@ -1297,7 +1311,7 @@ const CSymbol* CAstDesignator::GetSymbol(void) const
 
 bool CAstDesignator::TypeCheck(CToken *t, string *msg) const
 {
-  return true;
+  return true; // there is nothing to check
 }
 
 const CType* CAstDesignator::GetType(void) const
@@ -1382,7 +1396,7 @@ bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
   bool result = true;
   assert(_done);
 
-  if(!GetType()) {
+  if(!GetType()) { // if GetType is NULL then it is an invalid array expression
     if(t != NULL) *t = GetToken();
     if(msg != NULL) *msg = "invalid array expression.";
     return false;
@@ -1391,9 +1405,9 @@ bool CAstArrayDesignator::TypeCheck(CToken *t, string *msg) const
   int i;
   for(i = 0; i < GetNIndices(); i++) {
     CAstExpression *e = GetIndex(i);
-    if(!e->TypeCheck(t, msg)) return false;
+    if(!e->TypeCheck(t, msg)) return false; // Do TypeCheck on indexing expression
 
-    if(!e->GetType()->IsInt()) {
+    if(!e->GetType()->IsInt()) { // The indexing expression should be Int type
       if(t != NULL) *t = e->GetToken();
       if(msg != NULL) *msg = "invalid array index expression.";
       return false;
@@ -1409,14 +1423,14 @@ const CType* CAstArrayDesignator::GetType(void) const
   const CType *typ = sym->GetDataType();
 
   int i = GetNIndices();
-  while(i > 0) {
+  while(i > 0) { // strip outer "array" for number of indices
     if(const CPointerType *ptyp = dynamic_cast<const CPointerType *>(typ))
-      typ = ptyp->GetBaseType();
+      typ = ptyp->GetBaseType(); // strip outermost pointer
 
     if(const CArrayType *artyp = dynamic_cast<const CArrayType *>(typ))
       typ = artyp->GetInnerType();
     else
-      return NULL;
+      return NULL; // if we can't strip in the middle, return NULL
     
     i--;
   }

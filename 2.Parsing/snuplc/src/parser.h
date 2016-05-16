@@ -97,6 +97,7 @@ class CParser {
     
     /// @brief parses type and returns CType*
     /// @param isArgument whether the type is for argument of a procedure/function or not
+    /// @param isReturnType indicates whether the type is for return type of procedure/function
     /// @retval const CType * parsed type
     const CType*      type(bool isArgument, bool isReturnType=false);
 
