@@ -646,16 +646,21 @@ CAstStatement* CAstStatIf::GetElseBody(void) const
 
 bool CAstStatIf::TypeCheck(CToken *t, string *msg) const
 {
-  if(!_cond->TypeCheck(t, msg)) return false;
+  if(!_cond->TypeCheck(t, msg)) return false; // Do TypeCheck on condition expression
+  if(!_cond->GetType()->IsBoolean()) {
+    if(t != NULL) *t = _cond->GetToken();
+    if(msg != NULL) *msg = "boolean expression expected.";
+    return false;
+  }
   bool result = true;
   CAstStatement *s = _ifBody;
-  while(result && (s != NULL)) {
+  while(result && (s != NULL)) { // Do TypeCheck on all ifBody-statements
     result = s->TypeCheck(t, msg);
     s = s->GetNext();
   }
 
   s = _elseBody;
-  while(result && (s != NULL)) {
+  while(result && (s != NULL)) { // Do TypeCheck on all elseBody-statements
     result = s->TypeCheck(t, msg);
     s = s->GetNext();
   }
@@ -760,10 +765,15 @@ CAstStatement* CAstStatWhile::GetBody(void) const
 
 bool CAstStatWhile::TypeCheck(CToken *t, string *msg) const
 {
-  if(!_cond->TypeCheck(t, msg)) return false;
+  if(!_cond->TypeCheck(t, msg)) return false; // Do TypeCheck on condition expression
+  if(!_cond->GetType()->IsBoolean()) {
+    if(t != NULL) *t = _cond->GetToken();
+    if(msg != NULL) *msg = "boolean expression expected.";
+    return false;
+  }
   bool result = true;
   CAstStatement *s = _body;
-  while(result && (s != NULL)) {
+  while(result && (s != NULL)) { // Do TypeCheck on all body-statements
     result = s->TypeCheck(t, msg);
     s = s->GetNext();
   }
@@ -890,8 +900,9 @@ CAstExpression* CAstBinaryOp::GetRight(void) const
 
 bool CAstBinaryOp::TypeCheck(CToken *t, string *msg) const
 {
-  if(!(_left->TypeCheck(t, msg) && _right->TypeCheck(t, msg))) return false;
-  if(GetType()) return true;
+  if(!(_left->TypeCheck(t, msg) && _right->TypeCheck(t, msg))) return false; // do TypeCheck on left and right operand
+  if(GetType()) return true; // by the algorithm of GetType, if GetType is not null it correctly type-checks
+  // otherwise, something doesn't match so we set appropriate error message
   if(t != NULL) *t = GetToken(); 
   if(msg != NULL) {
     ostringstream ss;
@@ -910,8 +921,9 @@ const CType* CAstBinaryOp::GetType(void) const
 {
   const CType *lt = _left->GetType();
   const CType *rt = _right->GetType();
-  if(!lt || !rt) return NULL;
+  if(!lt || !rt) return NULL; // if lt or rt is NULL, there's nothing to work with in the first place
 
+  // Just plain implementation of type system specification
   EOperation oper = GetOperation();
   if(oper == opEqual || oper == opLessEqual || oper == opLessThan ||
      oper == opBiggerThan || oper == opBiggerEqual || oper == opNotEqual) {
@@ -1000,8 +1012,9 @@ CAstExpression* CAstUnaryOp::GetOperand(void) const
 
 bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
 {
-  if(!_operand->TypeCheck(t, msg)) return false;
-  if(GetType()) return true;
+  if(!_operand->TypeCheck(t, msg)) return false; // Do TypeCheck on operand
+  if(GetType()) return true; // By algorithm of GetType(), if GetType doesn't return NULL, it type-checsk
+  // otherwise types doesn't match in some way... so we emit appropriate error message
   if(t != NULL) *t = GetToken(); 
   if(msg != NULL) {
     ostringstream ss;
@@ -1017,6 +1030,7 @@ bool CAstUnaryOp::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstUnaryOp::GetType(void) const
 {
+  // Just plain implementation of type system specification
   if(GetOperation() == opNot && _operand->GetType()->IsBoolean())
     return CTypeManager::Get()->GetBool();
   else if((GetOperation() == opPos || GetOperation() == opNeg) && _operand->GetType()->IsInt())
