@@ -174,13 +174,13 @@ bool CAstScope::TypeCheck(CToken *t, string *msg) const
 
   try {
     CAstStatement *s = _statseq;
-    while(result && (s != NULL)) {
+    while(result && (s != NULL)) { // do TypeCheck for all statements under this scope
       result = s->TypeCheck(t, msg);
       s = s->GetNext();
     }
 
     vector<CAstScope*>::const_iterator it = _children.begin();
-    while(result && (it != _children.end())) {
+    while(result && (it != _children.end())) { // do TypeCheck for all scopes under this scope
       result = (*it)->TypeCheck(t, msg);
       it++;
     }
@@ -315,7 +315,7 @@ CSymbol* CAstProcedure::CreateVar(const string ident, const CType *type)
 
 const CType* CAstProcedure::GetType(void) const
 {
-  return GetSymbol()->GetDataType();
+  return GetSymbol()->GetDataType(); // return the data type of the procedure symbol
 }
 
 string CAstProcedure::dotAttr(void) const
@@ -400,14 +400,14 @@ CAstExpression* CAstStatAssign::GetRHS(void) const
 bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
 {
   if(!(_lhs->TypeCheck(t, msg) && _rhs->TypeCheck(t, msg))) {
-    return false;
+    return false; // if lhs or rhs doesn't TypeCheck, it is already an error
   }
-  if(!_lhs->GetType()->Match(_rhs->GetType())) {
+  if(!_lhs->GetType()->Match(_rhs->GetType())) { // lhs's type should match rhs's type
     if(t != NULL) *t = GetToken();
     if(msg != NULL) *msg = "assign to different type";
     return false;
   }
-  if(!_lhs->GetType()->IsScalar()) {
+  if(!_lhs->GetType()->IsScalar()) { // we don't support assignment to compound types
     if(t != NULL) *t = GetToken();
     if(msg != NULL) {
       ostringstream ss;
@@ -426,7 +426,8 @@ bool CAstStatAssign::TypeCheck(CToken *t, string *msg) const
 
 const CType* CAstStatAssign::GetType(void) const
 {
-  return _lhs->GetType();
+  return _lhs->GetType(); // the type of lhs represents the type of this assignment
+                          // whether the lhs's type matches rhs's type is checked in TypeCheck()
 }
 
 ostream& CAstStatAssign::print(ostream &out, int indent) const
@@ -485,7 +486,7 @@ CAstFunctionCall* CAstStatCall::GetCall(void) const
 
 bool CAstStatCall::TypeCheck(CToken *t, string *msg) const
 {
-  return GetCall()->TypeCheck(t, msg);
+  return GetCall()->TypeCheck(t, msg); // Do a TypeCheck on the CAstFunctionCall that it's holding
 }
 
 ostream& CAstStatCall::print(ostream &out, int indent) const
@@ -539,22 +540,24 @@ bool CAstStatReturn::TypeCheck(CToken *t, string *msg) const
 {
   const CType *st = GetScope()->GetType();
 
-  if(st->Match(CTypeManager::Get()->GetNull())) {
-    if(_expr != NULL) {
+  if(st->Match(CTypeManager::Get()->GetNull())) { // return type is null
+    if(_expr != NULL) { // if return type is null, it shouldn't return anything
       if(t != NULL) *t = _expr->GetToken();
       if(msg != NULL) *msg = "superfluous expression after return.";
       return false;
     }
-  } else {
-    if(_expr == NULL) {
+    // else, there's nothing to check
+  } else { // return type is not null
+    if(_expr == NULL) { // if return type is not null, we should return something
       if(t != NULL) *t = GetToken();
       if(msg != NULL) *msg = "expression expected after return.";
       return false;
     }
 
+    // return expression should be TypeChecked
     if(!_expr->TypeCheck(t, msg)) return false;
 
-    if(!st->Match(_expr->GetType())) {
+    if(!st->Match(_expr->GetType())) { // check whether the expression's type matches the return type
       if(t != NULL) *t = _expr->GetToken();
       if(msg != NULL) *msg = "return type mismatch.";
       return false;
@@ -917,7 +920,7 @@ const CType* CAstBinaryOp::GetType(void) const
         return CTypeManager::Get()->GetBool();
       return NULL;
     } else {
-      if(lt->Match(rt) && !(lt->IsBoolean()))
+      if(lt->Match(rt) && (lt->IsInt() || lt->IsChar()))
         return CTypeManager::Get()->GetBool();
       return NULL;
     }
