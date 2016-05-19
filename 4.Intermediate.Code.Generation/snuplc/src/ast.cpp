@@ -1852,12 +1852,13 @@ string CAstStringConstant::dotAttr(void) const
 
 CTacAddr* CAstStringConstant::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  return new CTacName(_sym);
 }
 
 CTacAddr* CAstStringConstant::ToTac(CCodeBlock *cb,
                                 CTacLabel *ltrue, CTacLabel *lfalse)
 {
+  assert(false && "this shouldn't be reached. string can't be bool type");
   return NULL;
 }
 
