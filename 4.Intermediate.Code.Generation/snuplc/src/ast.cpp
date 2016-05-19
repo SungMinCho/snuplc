@@ -765,7 +765,6 @@ CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
   while(s != NULL) {
     if(s->GetNext() == NULL) {
       s->ToTac(cb, next);
-      cb->AddInstr(new CTacInstr(opGoto, next));;
       break;
     }
     CTacLabel* tempnext = cb->CreateLabel();
@@ -786,6 +785,8 @@ CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
     cb->AddInstr(tempnext);
     s = s->GetNext();
   }
+
+  cb->AddInstr(new CTacInstr(opGoto, next));
 
   return NULL;
 }
