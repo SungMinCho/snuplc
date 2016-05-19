@@ -1760,10 +1760,10 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   CTacAddr* result_plus_dofs = cb->CreateTemp(INT);
   cb->AddInstr(new CTacInstr(opAdd, result_plus_dofs, mulby4, dofs));
 
-  CTacAddr* final_result = cb->CreateTemp(INT);
+  CTacTemp* final_result = cb->CreateTemp(INT);
   cb->AddInstr(new CTacInstr(opAdd, final_result, base, result_plus_dofs));
 
-  return final_result;
+  return new CTacReference(final_result->GetSymbol());
 }
 
 CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb,
