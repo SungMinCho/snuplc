@@ -1186,7 +1186,10 @@ void CAstSpecialOp::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstSpecialOp::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  CTacAddr* o = _operand->ToTac(cb);
+  CTacAddr* t = cb->CreateTemp(GetType());
+  cb->AddInstr(new CTacInstr(GetOperation(), t, o));
+  return t;
 }
 
 
