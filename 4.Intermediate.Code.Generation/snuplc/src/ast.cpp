@@ -881,6 +881,16 @@ void CAstStatWhile::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstStatWhile::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
+  CTacLabel* lcond = cb->CreateLabel("while_cond");
+  CTacLabel* lbody = cb->CreateLabel("while_body");
+
+  cb->AddInstr(lcond);
+  _cond->ToTac(cb, lbody, next);
+
+  cb->AddInstr(lbody);
+  
+  _body->ToTac(cb, lcond);
+
   return NULL;
 }
 
