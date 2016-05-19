@@ -1701,13 +1701,77 @@ void CAstArrayDesignator::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
 {
-  return NULL;
+  const CSymbol* DIM = cb->GetOwner()->GetSymbolTable()->FindSymbol("DIM");
+  const CSymbol* DOFS = cb->GetOwner()->GetSymbolTable()->FindSymbol("DOFS");
+
+  bool isPointer = GetType()->IsPointer();
+  const CType* pointerToSym = CTypeManager::Get()->GetPointer(GetType());
+  const CType* INT = CTypeManager::Get()->GetInt();
+  CTacAddr* sym = new CTacName(GetSymbol());
+  CTacAddr* base = sym;
+  if(!isPointer) {
+    CTacAddr* t = cb->CreateTemp(pointerToSym);
+    cb->AddInstr(new CTacInstr(opAddress, t, sym));
+    base = t;
+  }
+
+  CTacAddr* prevResult = GetIndex(0)->ToTac(cb);
+  int i;
+  for(i = 1; i < GetNIndices(); i++) {
+    cb->AddInstr(new CTacInstr(opParam, new CTacConst(1), new CTacConst(i+1))); // param 1 <- i+1
+
+    if(!isPointer) { // param 0 <- &a
+      CTacAddr* p = cb->CreateTemp(pointerToSym);
+      cb->AddInstr(new CTacInstr(opAddress, p, sym));
+      cb->AddInstr(new CTacInstr(opParam, new CTacConst(0), p));
+    } else { // param 0 <- a
+      cb->AddInstr(new CTacInstr(opParam, new CTacConst(0), base));
+    }
+
+    CTacAddr* dim = cb->CreateTemp(INT);
+    cb->AddInstr(new CTacInstr(opCall, dim, new CTacName(DIM)));
+
+    CTacAddr* lift = cb->CreateTemp(INT);
+    cb->AddInstr(new CTacInstr(opMul, lift, prevResult, dim));
+
+    CTacAddr* cur = GetIndex(i)->ToTac(cb);
+
+    CTacAddr* update = cb->CreateTemp(INT);
+    cb->AddInstr(new CTacInstr(opAdd, update, lift, cur));
+
+    prevResult = update;
+  }
+
+  CTacAddr* mulby4 = cb->CreateTemp(INT);
+  cb->AddInstr(new CTacInstr(opMul, mulby4, prevResult, new CTacConst(4)));
+
+  if(!isPointer) { // param 0 <- &a
+    CTacAddr* p = cb->CreateTemp(pointerToSym);
+    cb->AddInstr(new CTacInstr(opAddress, p, sym));
+    cb->AddInstr(new CTacInstr(opParam, new CTacConst(0), p));
+  } else { // param 0 <- a
+    cb->AddInstr(new CTacInstr(opParam, new CTacConst(0), base));
+  }
+
+  CTacAddr* dofs = cb->CreateTemp(INT);
+  cb->AddInstr(new CTacInstr(opCall, dofs, new CTacName(DOFS)));
+
+  CTacAddr* result_plus_dofs = cb->CreateTemp(INT);
+  cb->AddInstr(new CTacInstr(opAdd, result_plus_dofs, mulby4, dofs));
+
+  CTacAddr* final_result = cb->CreateTemp(INT);
+  cb->AddInstr(new CTacInstr(opAdd, final_result, base, result_plus_dofs));
+
+  return final_result;
 }
 
 CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb,
                                      CTacLabel *ltrue, CTacLabel *lfalse)
 {
-  return NULL;
+  CTacAddr* t = ToTac(cb);
+  cb->AddInstr(new CTacInstr(opEqual, ltrue, t, new CTacConst(1)));
+  cb->AddInstr(new CTacInstr(opGoto, lfalse));
+  return t;
 }
 
 
