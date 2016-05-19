@@ -1229,7 +1229,7 @@ CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb)
 {
   if(GetOperation() == opNot) {
     CTacAddr* o = _operand->ToTac(cb);
-    CTacAddr* t;
+    CTacAddr* t = cb->CreateTemp(GetType());
 
     CTacLabel* ltrue = cb->CreateLabel();
     CTacLabel* lnext = cb->CreateLabel();
