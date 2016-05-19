@@ -1029,10 +1029,10 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
 {
   if(!IsRelOp(GetOperation())) {
     if(GetOperation() == opAnd) {
-      CTacLabel* lchecksecond = cb->CreateLabel();
       CTacLabel* ltrue = cb->CreateLabel();
       CTacLabel* lfalse = cb->CreateLabel();
       CTacLabel* lnext = cb->CreateLabel();
+      CTacLabel* lchecksecond = cb->CreateLabel();
 
       CTacAddr* l = _left->ToTac(cb, lchecksecond, lfalse);
 
@@ -1052,10 +1052,10 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
 
       return t;
     } else if(GetOperation() == opOr) {
-      CTacLabel* lchecksecond = cb->CreateLabel();
       CTacLabel* ltrue = cb->CreateLabel();
       CTacLabel* lfalse = cb->CreateLabel();
       CTacLabel* lnext = cb->CreateLabel();
+      CTacLabel* lchecksecond = cb->CreateLabel();
 
       CTacAddr* l = _left->ToTac(cb, ltrue, lchecksecond);
 
