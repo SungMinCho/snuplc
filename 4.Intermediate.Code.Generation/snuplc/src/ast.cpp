@@ -1509,6 +1509,8 @@ CTacAddr* CAstDesignator::ToTac(CCodeBlock *cb)
 CTacAddr* CAstDesignator::ToTac(CCodeBlock *cb,
                                 CTacLabel *ltrue, CTacLabel *lfalse)
 {
+  cb->AddInstr(new CTacInstr(opEqual, ltrue, ToTac(cb), new CTacConst(1)));
+  cb->AddInstr(new CTacInstr(opGoto, lfalse));
   return NULL;
 }
 
@@ -1714,6 +1716,8 @@ CTacAddr* CAstConstant::ToTac(CCodeBlock *cb)
 CTacAddr* CAstConstant::ToTac(CCodeBlock *cb,
                                 CTacLabel *ltrue, CTacLabel *lfalse)
 {
+  cb->AddInstr(new CTacInstr(opEqual, ltrue, ToTac(cb), new CTacConst(1)));
+  cb->AddInstr(new CTacInstr(opGoto, lfalse));
   return NULL;
 }
 
