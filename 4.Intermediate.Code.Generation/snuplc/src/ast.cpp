@@ -1443,6 +1443,9 @@ CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb)
 CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb,
                                   CTacLabel *ltrue, CTacLabel *lfalse)
 {
+  CTacAddr* t = ToTac(cb);
+  cb->AddInstr(new CTacInstr(opEqual, ltrue, t, new CTacConst(1)));
+  cb->AddInstr(new CTacInstr(opGoto, lfalse));
   return NULL;
 }
 
