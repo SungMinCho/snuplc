@@ -1232,17 +1232,13 @@ CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb)
     CTacAddr* t;
 
     CTacLabel* ltrue = cb->CreateLabel();
-    CTacLabel* lfalse = cb->CreateLabel();
     CTacLabel* lnext = cb->CreateLabel();
 
     cb->AddInstr(new CTacInstr(opEqual, ltrue, o, new CTacConst(1)));
-    cb->AddInstr(new CTacInstr(opGoto, lfalse));
-
-    cb->AddInstr(ltrue);
     cb->AddInstr(new CTacInstr(opAssign, t, new CTacConst(1)));
     cb->AddInstr(new CTacInstr(opGoto, lnext));
 
-    cb->AddInstr(lfalse);
+    cb->AddInstr(ltrue);
     cb->AddInstr(new CTacInstr(opAssign, t, new CTacConst(0)));
 
     cb->AddInstr(lnext);
