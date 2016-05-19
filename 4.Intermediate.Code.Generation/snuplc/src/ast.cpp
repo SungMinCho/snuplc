@@ -637,7 +637,7 @@ CTacAddr* CAstStatReturn::ToTac(CCodeBlock *cb, CTacLabel *next)
     cb->AddInstr(new CTacInstr(opReturn, NULL));
   } else {
     CTacAddr* t = _expr->ToTac(cb);
-    cb->AddInstr(new CTacInstr(opReturn, t));
+    cb->AddInstr(new CTacInstr(opReturn, NULL, t));
   }
   cb->AddInstr(new CTacInstr(opGoto, next));
   return NULL;
