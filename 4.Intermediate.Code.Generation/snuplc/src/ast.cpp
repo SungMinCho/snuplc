@@ -1220,16 +1220,48 @@ void CAstUnaryOp::toDot(ostream &out, int indent) const
 
 CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb)
 {
-  CTacAddr* o = _operand->ToTac(cb);
-  CTacAddr* t = cb->CreateTemp(GetType());
-  cb->AddInstr(new CTacInstr(GetOperation(), t, o));
-  return t;
+  if(GetOperation() == opNot) {
+    CTacAddr* o = _operand->ToTac(cb);
+    CTacAddr* t;
+
+    CTacLabel* ltrue = cb->CreateLabel();
+    CTacLabel* lfalse = cb->CreateLabel();
+    CTacLabel* lnext = cb->CreateLabel();
+
+    cb->AddInstr(new CTacInstr(opEqual, ltrue, o, new CTacConst(1)));
+    cb->AddInstr(new CTacInstr(opGoto, lfalse));
+
+    cb->AddInstr(ltrue);
+    cb->AddInstr(new CTacInstr(opAssign, t, new CTacConst(1)));
+    cb->AddInstr(new CTacInstr(opGoto, lnext));
+
+    cb->AddInstr(lfalse);
+    cb->AddInstr(new CTacInstr(opAssign, t, new CTacConst(0)));
+
+    cb->AddInstr(lnext);
+
+    return t;
+  } else {
+    CTacAddr* o = _operand->ToTac(cb);
+    CTacAddr* t = cb->CreateTemp(GetType());
+    cb->AddInstr(new CTacInstr(GetOperation(), t, o));
+    return t;
+  }
 }
 
 CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb,
                              CTacLabel *ltrue, CTacLabel *lfalse)
 {
-  return NULL;
+  if(GetOperation() == opNot) {
+    CTacAddr* o = _operand->ToTac(cb);
+
+    cb->AddInstr(new CTacInstr(opEqual, ltrue, o, new CTacConst(1)));
+    cb->AddInstr(new CTacInstr(opGoto, lfalse));
+
+    return NULL;
+  } else {
+    assert(false && "should be boolean");
+  }
 }
 
 
