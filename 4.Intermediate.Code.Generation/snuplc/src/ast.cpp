@@ -1704,7 +1704,7 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   const CSymbol* DIM = cb->GetOwner()->GetSymbolTable()->FindSymbol("DIM");
   const CSymbol* DOFS = cb->GetOwner()->GetSymbolTable()->FindSymbol("DOFS");
 
-  bool isPointer = GetType()->IsPointer();
+  bool isPointer = GetSymbol()->GetDataType()->IsPointer();
   const CType* pointerToSym = CTypeManager::Get()->GetPointer(GetSymbol()->GetDataType());
   const CType* INT = CTypeManager::Get()->GetInt();
   CTacAddr* sym = new CTacName(GetSymbol());
