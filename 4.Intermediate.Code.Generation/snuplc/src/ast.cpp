@@ -757,9 +757,7 @@ void CAstStatIf::toDot(ostream &out, int indent) const
 CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
   CTacLabel* truelabel = cb->CreateLabel("if_true");
-  CTacLabel* falselabel = next;
-  if(_elseBody != NULL) falselabel = cb->CreateLabel("if_false");
-
+  CTacLabel* falselabel = cb->CreateLabel("if_false");
   _cond->ToTac(cb, truelabel, falselabel);
 
   CAstStatement *s = _ifBody;
