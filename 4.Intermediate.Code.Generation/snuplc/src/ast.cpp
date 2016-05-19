@@ -1467,9 +1467,14 @@ CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb)
     CTacAddr* t = GetArg(i)->ToTac(cb);
     cb->AddInstr(new CTacInstr(opParam, new CTacConst(i), t));
   }
-  CTacAddr* t = cb->CreateTemp(GetType());
-  cb->AddInstr(new CTacInstr(opCall, t, new CTacName(_symbol)));
-  return t;
+  if(GetType()->IsNull()) {
+    cb->AddInstr(new CTacInstr(opCall, NULL, new CTacName(_symbol)));
+    return NULL;
+  } else{
+    CTacAddr* t = cb->CreateTemp(GetType());
+    cb->AddInstr(new CTacInstr(opCall, t, new CTacName(_symbol)));
+    return t;
+  }
 }
 
 CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb,
@@ -1478,7 +1483,7 @@ CTacAddr* CAstFunctionCall::ToTac(CCodeBlock *cb,
   CTacAddr* t = ToTac(cb);
   cb->AddInstr(new CTacInstr(opEqual, ltrue, t, new CTacConst(1)));
   cb->AddInstr(new CTacInstr(opGoto, lfalse));
-  return NULL;
+  return t;
 }
 
 
