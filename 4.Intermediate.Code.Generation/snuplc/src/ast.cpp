@@ -776,7 +776,6 @@ CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
 
   s = _elseBody;
   cb->AddInstr(falselabel);
-  if(_elseBody != NULL) cb->AddInstr(falselabel);
   while(s != NULL) {
     if(s->GetNext() == NULL) {
       s->ToTac(cb, next);
