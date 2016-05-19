@@ -889,7 +889,15 @@ CTacAddr* CAstStatWhile::ToTac(CCodeBlock *cb, CTacLabel *next)
 
   cb->AddInstr(lbody);
   
-  _body->ToTac(cb, lcond);
+  CAstStatement *s = _body;
+  while(s != NULL) {
+    CTacLabel *tempnext = cb->CreateLabel();
+    s->ToTac(cb, tempnext);
+    cb->AddInstr(tempnext);
+    s = s->GetNext();
+  }
+
+  cb->AddInstr(new CTacInstr(opGoto, lcond));
 
   return NULL;
 }
