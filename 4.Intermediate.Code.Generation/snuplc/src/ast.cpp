@@ -763,23 +763,16 @@ CTacAddr* CAstStatIf::ToTac(CCodeBlock *cb, CTacLabel *next)
   CAstStatement *s = _ifBody;
   cb->AddInstr(truelabel);
   while(s != NULL) {
-    if(s->GetNext() == NULL) {
-      s->ToTac(cb, next);
-      break;
-    }
     CTacLabel* tempnext = cb->CreateLabel();
     s->ToTac(cb, tempnext);
     cb->AddInstr(tempnext);
     s = s->GetNext();
   }
+  cb->AddInstr(new CTacInstr(opGoto, next));
 
   s = _elseBody;
   cb->AddInstr(falselabel);
   while(s != NULL) {
-    if(s->GetNext() == NULL) {
-      s->ToTac(cb, next);
-      break;
-    }
     CTacLabel* tempnext = cb->CreateLabel();
     s->ToTac(cb, tempnext);
     cb->AddInstr(tempnext);
