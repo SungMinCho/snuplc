@@ -44,7 +44,9 @@ and fresh_name (st:symtab) : name =
     tempStr <- "t" + cnt.ToString()
     if not (valueList.Contains(tempStr)) then brk <- true
   tempStr
-  
+
+and new_symtab () : symtab =
+  new Dictionary<typ, List<name>>()
 
 and get_int (depth:int) (st:symtab) : qualident =
   let t = make_array_type (Typ0 INT) (getRandom 5) in
@@ -148,9 +150,9 @@ type md = Md of symtab * func list * stat list
 
 let make_func (depth:int) (sn:int) : func =
   let t = (match (getRandom 4) with 0 -> Typ0 NULL | 1 -> Typ0 INT | 2 -> Typ0 CHAR | _ -> Typ0 BOOL) in
-  let st = new Dictionary<typ, name>() in
+  let st = new_symtab() in
   Func (t, st, [for x in 1 .. sn -> make_stat depth st t])
 
 let make_module (depth:int) (fn:int) (sn:int) : md =
-  let st = new Dictionary<typ, name>() in
+  let st = new_symtab() in
   Md (st, [for x in 1 .. fn -> make_func depth sn], [for x in 1 .. sn -> make_stat depth st (Typ0 NULL)])
