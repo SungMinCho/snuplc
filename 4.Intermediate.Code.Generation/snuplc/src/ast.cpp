@@ -1115,6 +1115,7 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
     CTacLabel* ltrue = cb->CreateLabel();
     CTacLabel* lfalse = cb->CreateLabel();
     CTacLabel* lnext = cb->CreateLabel();
+    CTacLabel* ldummy = cb->CreateLabel();
     cb->AddInstr(new CTacInstr(GetOperation(), ltrue, l, r));
     cb->AddInstr(new CTacInstr(opGoto, lfalse));
 
@@ -1159,6 +1160,8 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb,
   } else {
     CTacAddr* l = _left->ToTac(cb);
     CTacAddr* r = _right->ToTac(cb);
+
+    CTacLabel* ldummy = cb->CreateLabel();
 
     cb->AddInstr(new CTacInstr(GetOperation(), ltrue, l, r));
     cb->AddInstr(new CTacInstr(opGoto, lfalse));
@@ -1246,13 +1249,14 @@ void CAstUnaryOp::toDot(ostream &out, int indent) const
 CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb)
 {
   if(GetOperation() == opNot) {
-    CTacAddr* o = _operand->ToTac(cb);
-    CTacAddr* t = cb->CreateTemp(GetType());
-
+    CTacLabel* lfalse = cb->CreateLabel();
     CTacLabel* ltrue = cb->CreateLabel();
     CTacLabel* lnext = cb->CreateLabel();
 
-    cb->AddInstr(new CTacInstr(opEqual, ltrue, o, new CTacConst(1)));
+    CTacAddr* o = _operand->ToTac(cb, ltrue, lfalse);
+    CTacAddr* t = cb->CreateTemp(GetType());
+
+    cb->AddInstr(lfalse);
     cb->AddInstr(new CTacInstr(opAssign, t, new CTacConst(1)));
     cb->AddInstr(new CTacInstr(opGoto, lnext));
 
@@ -1274,10 +1278,7 @@ CTacAddr* CAstUnaryOp::ToTac(CCodeBlock *cb,
                              CTacLabel *ltrue, CTacLabel *lfalse)
 {
   if(GetOperation() == opNot) {
-    CTacAddr* o = _operand->ToTac(cb);
-
-    cb->AddInstr(new CTacInstr(opEqual, ltrue, o, new CTacConst(1)));
-    cb->AddInstr(new CTacInstr(opGoto, lfalse));
+    CTacAddr* o = _operand->ToTac(cb, lfalse, ltrue);
 
     return NULL;
   } else {
@@ -1367,7 +1368,9 @@ void CAstSpecialOp::toDot(ostream &out, int indent) const
 CTacAddr* CAstSpecialOp::ToTac(CCodeBlock *cb)
 {
   CTacAddr* o = _operand->ToTac(cb);
-  CTacAddr* t = cb->CreateTemp(GetType());
+  CTacName* n = dynamic_cast<CTacName*>(o);
+  assert(n != NULL && "we never address constants");
+  CTacAddr* t = cb->CreateTemp(CTypeManager::Get()->GetPointer(n->GetSymbol()->GetDataType()));
   cb->AddInstr(new CTacInstr(GetOperation(), t, o));
   return t;
 }
@@ -1710,6 +1713,11 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   const CType* INT = CTypeManager::Get()->GetInt();
   CTacAddr* sym = new CTacName(GetSymbol());
   CTacAddr* base = sym;
+
+  const CArrayType* arraytype;
+  if(!isPointer) arraytype = dynamic_cast<const CArrayType*>(GetSymbol()->GetDataType());
+  else arraytype = dynamic_cast<const CArrayType*>(dynamic_cast<const CPointerType*>(GetSymbol()->GetDataType())->GetBaseType());
+
   if(!isPointer) {
     CTacAddr* t = cb->CreateTemp(pointerToSym);
     cb->AddInstr(new CTacInstr(opAddress, t, sym));
@@ -1718,7 +1726,8 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
 
   CTacAddr* prevResult = GetIndex(0)->ToTac(cb);
   int i;
-  for(i = 1; i < GetNIndices(); i++) {
+  int actual_dimensions = arraytype->GetNDim();
+  for(i = 1; i < actual_dimensions; i++) {
     cb->AddInstr(new CTacInstr(opParam, new CTacConst(1), new CTacConst(i+1))); // param 1 <- i+1
 
     if(!isPointer) { // param 0 <- &a
@@ -1735,7 +1744,12 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
     CTacAddr* lift = cb->CreateTemp(INT);
     cb->AddInstr(new CTacInstr(opMul, lift, prevResult, dim));
 
-    CTacAddr* cur = GetIndex(i)->ToTac(cb);
+    CTacAddr* cur;
+    if(i < GetNIndices()) {
+      cur = GetIndex(i)->ToTac(cb);
+    } else {
+      cur = new CTacConst(0);
+    }
 
     CTacAddr* update = cb->CreateTemp(INT);
     cb->AddInstr(new CTacInstr(opAdd, update, lift, cur));
@@ -1743,8 +1757,9 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
     prevResult = update;
   }
 
-  CTacAddr* mulby4 = cb->CreateTemp(INT);
-  cb->AddInstr(new CTacInstr(opMul, mulby4, prevResult, new CTacConst(4)));
+  CTacAddr* mulbydatasize = cb->CreateTemp(INT);
+  int datasize = arraytype->GetBaseType()->GetSize();
+  cb->AddInstr(new CTacInstr(opMul, mulbydatasize, prevResult, new CTacConst(datasize)));
 
   if(!isPointer) { // param 0 <- &a
     CTacAddr* p = cb->CreateTemp(pointerToSym);
@@ -1758,7 +1773,7 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   cb->AddInstr(new CTacInstr(opCall, dofs, new CTacName(DOFS)));
 
   CTacAddr* result_plus_dofs = cb->CreateTemp(INT);
-  cb->AddInstr(new CTacInstr(opAdd, result_plus_dofs, mulby4, dofs));
+  cb->AddInstr(new CTacInstr(opAdd, result_plus_dofs, mulbydatasize, dofs));
 
   CTacTemp* final_result = cb->CreateTemp(INT);
   cb->AddInstr(new CTacInstr(opAdd, final_result, base, result_plus_dofs));
@@ -1851,8 +1866,9 @@ CTacAddr* CAstConstant::ToTac(CCodeBlock *cb)
 CTacAddr* CAstConstant::ToTac(CCodeBlock *cb,
                                 CTacLabel *ltrue, CTacLabel *lfalse)
 {
-  cb->AddInstr(new CTacInstr(opEqual, ltrue, ToTac(cb), new CTacConst(1)));
-  cb->AddInstr(new CTacInstr(opGoto, lfalse));
+  // by typecheck, we can be sure that this is boolean.
+  if(_value == 0) cb->AddInstr(new CTacInstr(opGoto, lfalse));
+  else cb->AddInstr(new CTacInstr(opGoto, ltrue));
   return NULL;
 }
 
