@@ -1370,7 +1370,22 @@ CTacAddr* CAstSpecialOp::ToTac(CCodeBlock *cb)
   CTacAddr* o = _operand->ToTac(cb);
   CTacName* n = dynamic_cast<CTacName*>(o);
   assert(n != NULL && "we never address constants");
-  CTacAddr* t = cb->CreateTemp(CTypeManager::Get()->GetPointer(n->GetSymbol()->GetDataType()));
+//  CTacAddr* t = cb->CreateTemp(GetType());
+//  CTacAddr* t = cb->CreateTemp(CTypeManager::Get()->GetPointer(n->GetSymbol()->GetDataType()));
+  CTacAddr* t;
+  if(CAstArrayDesignator* ad = dynamic_cast<CAstArrayDesignator*>(_operand)) {
+    if(const CArrayType* at = dynamic_cast<const CArrayType*>(_operand->GetType())) {
+      if(!ad->GetSymbol()->GetDataType()->Match(at)) {
+        t = cb->CreateTemp(CTypeManager::Get()->GetPointer(at->GetBaseType()));
+      } else {
+        t = cb->CreateTemp(GetType());
+      }
+    } else {
+      t = cb->CreateTemp(GetType());
+    }
+  } else {
+    t = cb->CreateTemp(GetType());
+  }
   cb->AddInstr(new CTacInstr(GetOperation(), t, o));
   return t;
 }
