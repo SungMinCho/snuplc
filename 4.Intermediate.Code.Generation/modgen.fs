@@ -156,3 +156,15 @@ let make_func (depth:int) (sn:int) : func =
 let make_module (depth:int) (fn:int) (sn:int) : md =
   let st = new_symtab() in
   Md (st, [for x in 1 .. fn -> make_func depth sn], [for x in 1 .. sn -> make_stat depth st (Typ0 NULL)])
+
+let str_typ (k:typ) : string = "TODO"
+
+let var_decl (s:symtab) : string =
+  let tempFunc = (Seq.map (fun (KeyValue(k, v)) -> (String.concat ", " v) + " : " + (str_typ k)) s)
+  String.concat ";" tempFunc
+
+
+let str_module (m:md) =
+  match m with
+  | Md (s,fl,sl) ->
+    "module test;\n\nvar " + (var_decl s) + ";"
