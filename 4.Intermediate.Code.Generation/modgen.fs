@@ -12,7 +12,7 @@ and simplexpr = Simplexpr0 of term | Simplexpr1 of posneg * term | Simplexpr2 of
 and term = Term0 of factor | Term1 of term * factOp * factor
 and factor = Factor0 of qualident | Factor1 of int | Factor2 of bool | Factor3 of char | Factor4 of string
            | Factor5 of expr | Factor6 of call | Factor7 of bang * factor
-and qualident = Qualident0 of name | Qualident1 of name * int list
+and qualident = Qualident0 of name | Qualident1 of qualident * expr
 and relOp = Eq | Neq | Le | Lt | Ge | Gt
 and termOp = Plus | Minus | Or
 and factOp = Mult | Div | And
@@ -22,13 +22,39 @@ and call = Call0 of name * expr list
 and basetyp = NULL | INT | CHAR | BOOL
 and typ = Typ0 of basetyp | Typ1 of typ * int
 
-type symtab = Dictionary<typ, name>
+type symtab = Dictionary<typ, List<name>>
 
-let get_int (depth:int) (st:symtab) : qualident = Qualident0 "TODO"
-let get_bool (depth:int) (st:symtab) : qualident = Qualident0 "TODO"
-let get_char (depth:int) (st:symtab) : qualident = Qualident0 "TODO"
+let get_random_elem (l:List<'a>) = l.[(getRandom(l.Count))]
 
-let rec make_int_expr (depth:int) (st:symtab) : expr = Expr0 (make_int_simplexpr (depth-1) st)
+let rec make_array_type (b:typ) (n:int) : typ =
+  if n = 0 then b else Typ1 ((make_array_type b (n-1)), (getRandom 100))
+
+let rec make_qualident (n:name) (t:typ) (depth:int) (st:symtab) : qualident =
+  match t with
+  | Typ0 _ -> Qualident0 n
+  | Typ1 (inner, _) -> Qualident1 (make_qualident n inner depth st, (make_int_expr depth st))
+
+and fresh_name (st:symtab) : name =
+  let valueList = new List<name>()
+  Seq.iter (fun (KeyValue((k : typ), (v : List<name>))) -> v.ForEach (fun (x : name) -> valueList.Add(x))) st
+  let mutable cnt = 0
+  let mutable brk = false
+  let mutable tempStr = ""
+  while (not brk) do
+    tempStr <- "t" + cnt.ToString()
+    if not (valueList.Contains(tempStr)) then brk <- true
+  tempStr
+  
+
+and get_int (depth:int) (st:symtab) : qualident =
+  let t = make_array_type (Typ0 INT) (getRandom 5) in
+  match st.TryGetValue(t) with
+  | (true, l) -> let n = get_random_elem l in (make_qualident n t depth st)
+  | (false, _) -> st.Add(t, new List<name>([fresh_name st])) ; Qualident0 "TODO"
+and get_bool (depth:int) (st:symtab) : qualident = Qualident0 "TODO"
+and get_char (depth:int) (st:symtab) : qualident = Qualident0 "TODO"
+
+and make_int_expr (depth:int) (st:symtab) : expr = Expr0 (make_int_simplexpr (depth-1) st)
 and make_int_simplexpr (depth:int) (st:symtab) : simplexpr = 
   match (getRandom 3) with
   | 0 -> Simplexpr0 (make_int_term (depth-1) st)
