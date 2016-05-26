@@ -598,7 +598,7 @@ class Module(Function):
 
 def main():
   #f = Function("f", [], None, 10, 200)
-  m = Module("test", 5, 10, 30)
+  m = Module("test", 5, 10, 1000)
   print(m)
 
 
