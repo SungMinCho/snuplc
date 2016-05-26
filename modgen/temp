@@ -1,0 +1,461 @@
+module test;
+var v1 : char;
+v3 : boolean;
+v4 : boolean;
+v9 : boolean;
+v10 : boolean;
+v0 : integer;
+v2 : integer;
+v5 : integer;
+v6 : integer;
+v7 : integer;
+v8 : integer;
+  procedure f0() ;
+  var v8 : char;
+  v10 : char;
+  v6 : boolean;
+  v7 : boolean;
+  v9 : boolean;
+  v4 : integer;
+  v5 : integer;
+  begin
+  v4 := 57162 - 53859 - 69589 - 46504 - + 13384;
+  while ('b' > 'd' && 75323 >= - 56592 && TODO() || false && true && true && false && true && false || false)
+  do
+    TODO();
+    v5 := 80681;
+    v6 := 'd' > 'a'
+    end;
+  TODO();
+  while (true && false = true)
+  do
+    return;
+    v7 := false || true && true && false && true || false || true || false;
+    return;
+    TODO()
+    end;
+  return;
+  v8 := TODO();
+  TODO();
+  if (TODO() || false || false || false # true)
+  then
+    if (- 61323 > 11430)
+    then  
+    end;
+    TODO();
+    if (+ 87945 = 14482)
+    then  
+    end;
+    v9 := 'c' <= 'c'
+  end;
+  v10 := 'a';
+  if ('b' >= 'c')
+  then
+    return;
+    while (true)
+    do
+      while (true = true)
+      do
+        
+        end;
+      TODO();
+      TODO()
+      end
+  end
+  end f0;
+  
+  function f1() : char ;
+  var v7 : char;
+  v8 : char;
+  v4 : boolean;
+  v5 : boolean;
+  v9 : boolean;
+  v6 : integer;
+  begin
+  while (TODO() >= 53812 && TODO() < 'c' || false && true)
+  do
+    
+    end;
+  if (70865 >= + 66140)
+  then
+    while (false || 'd' <= 'c')
+    do
+      TODO();
+      TODO();
+      return 'a';
+      while (false)
+      do
+        
+        end
+      end;
+    return 'd';
+    TODO();
+    while (36326 = - 5430)
+    do
+      return 'c';
+      while (false)
+      do
+        
+        end
+      end
+  end;
+  return TODO();
+  v4 := true || true || true || true || false && true;
+  v5 := TODO() / TODO() > - 81767;
+  v6 := - 6033 - TODO() - 40291 - 61796 + 20319 + 54441 - 96405;
+  if (false && true)
+  then
+    if (false)
+    then
+      while (+ 14578 = 94826)
+      do
+        return 'd';
+        return 'a';
+        return 'd';
+        while (false)
+        do
+          
+          end
+        end;
+      TODO();
+      if (false)
+      then  
+      end;
+      if (true)
+      then  
+      end;
+      while (false)
+      do
+        
+        end
+    end;
+    if (66334 <= 16918)
+    then  
+    end;
+    return 'b';
+    TODO()
+  end;
+  while (TODO() || false || true || false || true && false || false || false)
+  do
+    v7 := 'b';
+    v8 := TODO();
+    v9 := 'd' >= 'c'
+    end;
+  if (+ 25039 > + 91346)
+  then
+    while ('d' >= 'b')
+    do
+      TODO();
+      TODO();
+      if (true)
+      then  
+      end;
+      if (true)
+      then
+        while (false)
+        do
+          
+          end;
+        if (true)
+        then  
+        end;
+        return 'a';
+        return 'b';
+        if (58903 <= - 78232)
+        then
+          while (false)
+          do
+            
+            end;
+          while (true)
+          do
+            
+            end
+        end
+      end
+      end;
+    TODO()
+  end;
+  TODO()
+  end f1;
+  
+  function f2() : char ;
+  var v7 : char;
+  v4 : boolean;
+  v8 : boolean;
+  v5 : integer;
+  v6 : integer;
+  v9 : integer;
+  begin
+  if (false || 'd' < 'a')
+  then
+    if (true || false)
+    then
+      v4 := 12963 # 97712
+    end;
+    while (false)
+    do
+      
+      end;
+    TODO();
+    return 'd';
+    if ('a' <= 'd')
+    then  
+    end;
+    return 'a'
+  end;
+  v5 := 7021;
+  return TODO();
+  return TODO();
+  return TODO();
+  TODO();
+  while (+ 52300 - 29221 + 84420 / TODO() < - 84086)
+  do
+    v6 := 82362;
+    while (true)
+    do
+      
+      end;
+    while (+ 71646 <= 84328)
+    do
+      
+      end
+    end;
+  TODO();
+  v7 := TODO();
+  while (TODO() <= TODO())
+  do
+    v8 := false;
+    return 'b';
+    while (false)
+    do
+      
+      end;
+    v9 := 86783
+    end
+  end f2;
+  
+  function f3() : boolean ;
+  var v4 : char;
+  v5 : char;
+  v7 : char;
+  v10 : char;
+  v9 : boolean;
+  v6 : integer;
+  v8 : integer;
+  begin
+  if (- 19515 < + 84979 / 33051)
+  then
+    TODO();
+    v4 := TODO()
+  end;
+  TODO();
+  v5 := TODO();
+  v6 := - TODO();
+  v7 := TODO();
+  while ('b' <= 'a')
+  do
+    TODO();
+    if ('c' > 'b')
+    then
+      TODO();
+      TODO();
+      if (false)
+      then  
+      end;
+      TODO();
+      while (381 < 89337)
+      do
+        
+        end;
+      if (false)
+      then  
+      end
+    end;
+    while ('b' = 'c')
+    do
+      
+      end
+    end;
+  while (- 58844 <= - 49774 * - 78177 - 47450)
+  do
+    v8 := 6157;
+    if ('a' > 'd')
+    then  
+    end
+    end;
+  while (true && false && false && true)
+  do
+    while ('d' > 'd')
+    do
+      v9 := false
+      end;
+    if (false && false && false)
+    then
+      if (false)
+      then  
+      end;
+      TODO();
+      return false
+    end;
+    while ('d' > 'c')
+    do
+      
+      end
+    end;
+  TODO();
+  if (TODO() > 'd' && TODO() < 'b' || true || true = true && true && false)
+  then
+    v10 := 'c'
+  end
+  end f3;
+  
+  procedure f4() ;
+  var v4 : char;
+  v7 : char;
+  v8 : char;
+  v9 : char;
+  v11 : char;
+  v6 : boolean;
+  v10 : boolean;
+  v5 : integer;
+  begin
+  return;
+  return;
+  if (TODO() <= 'c')
+  then
+    TODO();
+    while ('c' < TODO())
+    do
+      return;
+      v4 := 'b'
+      end;
+    v5 := 18532;
+    TODO();
+    if ('c' # 'a')
+    then  
+    end;
+    TODO();
+    TODO();
+    if (true)
+    then  
+    end;
+    while ('a' # 'c')
+    do
+      
+      end;
+    while (true = false)
+    do
+      
+      end
+  end;
+  return;
+  if (69791 + 48766 + 3201 > 82937)
+  then
+    v6 := 'b' > 'd';
+    TODO();
+    v7 := 'd';
+    return
+  end;
+  TODO();
+  v8 := 'b';
+  v9 := TODO();
+  v10 := true || TODO() && true && false && true || true || false || true || false;
+  if (TODO() / 25443 / 67117 / 13717 + 59625 - 44501 - 94449 + 16433 > + 7356)
+  then
+    v11 := 'c';
+    if (false)
+    then  
+    end;
+    if (true)
+    then
+      while ('d' >= 'c')
+      do
+        
+        end;
+      while (- 88930 = - 73395)
+      do
+        
+        end;
+      TODO()
+    end
+  end
+  end f4;
+  
+begin
+v0 := + TODO() / 59881 / 86590 * 98055 * 56418;
+while (TODO() <= 'c')
+do
+  v1 := 'a';
+  if (+ 70092 <= + 62062)
+  then  
+  end;
+  TODO();
+  return
+  end;
+v2 := - 72079 + 93675 + 72470;
+TODO();
+v3 := TODO() >= 'b';
+TODO();
+v4 := TODO() && true && false && false && true || TODO() && false && false && false && true && false && false || false || true;
+TODO();
+if (+ 72404 < - 68409)
+then
+  TODO();
+  return
+end;
+TODO();
+while (TODO() < TODO())
+do
+  return
+  end;
+if (- 15769 >= - 73297 && false)
+then
+  v5 := 81888;
+  TODO();
+  v6 := - 40907;
+  return;
+  return
+end;
+return;
+TODO();
+while (false || false # true || true)
+do
+  return;
+  if (true || false)
+  then
+    TODO();
+    while (true)
+    do
+      
+      end;
+    return;
+    return;
+    v7 := 681;
+    v8 := - 43852
+  end
+  end;
+if (51819 * 5571 * 34290 / 2254 > 8871)
+then
+  while (false || false || true)
+  do
+    while ('b' > 'c')
+    do
+      while (true)
+      do
+        TODO()
+        end
+      end;
+    v9 := 18437 >= 20260;
+    return;
+    while (false)
+    do
+      
+      end;
+    TODO();
+    TODO()
+    end;
+  v10 := - 75505 < 80508
+end
+end test.
+

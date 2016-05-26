@@ -185,11 +185,9 @@ class StatReturn():
 #########################################################################################################
 
 class Symtab:
-  def __init__(self, copy=None):
+  def __init__(self, parent=None):
     self.d = {}
-    if copy:
-      for k in copy.d:
-        self.d[k] = copy.d[k]
+    self.parent = parent
 
   def keyvalues(self): # return (k,v)s when k -> [v,v,v,v,v]
     for k in self.d:
@@ -201,6 +199,9 @@ class Symtab:
     vs = []
     for k in self.d:
       vs += self.d[k]
+    if self.parent:
+      for k in self.parent.d:
+        vs += self.parent.d[k]
     c = 0
     v = "v" + str(c)
     while v in vs:
@@ -324,8 +325,7 @@ class Function:
     self.arg_types = arg_types
     self.return_type = return_type
     if parent:
-      self.parentsymtab = parent.symtab # copy global variables
-      self.symtab = Symtab()
+      self.symtab = Symtab(parent.symtab)
       self.funcs = parent.funcs
     else:
       self.symtab = Symtab()
@@ -372,7 +372,7 @@ class Function:
     res += ";\n".join([s.__str__() for s in self.stats])
     res += "\nend " + self.name + ";\n"
 
-    return res
+    return indent(res)
 
   def make_call(self, length, rettype):
     return FactorCall("TODO", []) # temporary
