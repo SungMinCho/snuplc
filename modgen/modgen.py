@@ -189,7 +189,7 @@ class Symtab:
     self.d = {}
     if copy:
       for k in copy.d:
-        d[k] = copy[k]
+        self.d[k] = copy.d[k]
 
   def keyvalues(self): # return (k,v)s when k -> [v,v,v,v,v]
     for k in self.d:
@@ -242,6 +242,8 @@ class Basetype(Type):
   def __ne__(self, other):
     return not (self==other)
   def __eq__(self, other):
+    if other == None:
+      return False
     if self.typeclass() != other.typeclass():
       return False
     return self.typename == other.typename
@@ -264,6 +266,8 @@ class Arraytype(Type):
   def __ne__(self, other):
     return not (self==other)
   def __eq__(self, other):
+    if other == None:
+      return False
     if self.typeclass() != other.typeclass():
       return False
     if (not (self.basetype == other.basetype)):
@@ -288,6 +292,8 @@ class Pointertype(Type):
   def __ne__(self, other):
     return not (self==other)
   def __eq__(self, other):
+    if other == None:
+      return False
     if self.typeclass() != other.typeclass():
       return False
     return self.basetype == other.basetype
@@ -318,7 +324,9 @@ class Function:
     self.arg_types = arg_types
     self.return_type = return_type
     if parent:
-      self.symtab = Symtab(parent.symtab) # copy global variables
+      self.parentsymtab = parent.symtab # copy global variables
+      self.symtab = Symtab()
+      self.funcs = parent.funcs
     else:
       self.symtab = Symtab()
     self.arguments = []
@@ -350,7 +358,7 @@ class Function:
 
     res += ")"
     if self.return_type:
-      res += " : " + return_type.__str__()
+      res += " : " + self.return_type.__str__()
     res += " ;\n"
 
     res += "var "
@@ -362,7 +370,7 @@ class Function:
 
     res += "begin\n"
     res += ";\n".join([s.__str__() for s in self.stats])
-    res += "\nend " + self.name + ";\n\n"
+    res += "\nend " + self.name + ";\n"
 
     return res
 
@@ -488,10 +496,50 @@ class Function:
       else:
         return StatReturn(self.make_expression(statlength-1, self.return_type))
 
+class Module(Function):
+  def __init__(self, name, funcnum, statnum, statlength):
+    (sn1, sn2) = cut(statnum)
+    Function.__init__(self, name, [], None, sn1, statlength)
+    self.funcs = []
+    for i in range(funcnum):
+      self.funcs.append(Function(self.fresh_function_name(), [], randomBasetypeIncludingNull(), statnum, statlength, self)) # argtypes currently []
+
+    for i in range(statnum):
+      self.stats.append(self.make_statement(statlength))
+
+  def fresh_function_name(self):
+    def valid(name):
+      for f in self.funcs:
+        if name == f.name:
+          return False
+      return True
+    cnt = 0
+    name = "f" + str(cnt)
+    while not valid(name):
+      cnt += 1
+      name = "f" + str(cnt)
+    return name
+
+  def __str__(self):
+    res = "module " + self.name + ";\n"
+
+    res += "var "
+
+    for (t,v) in self.symtab.keyvalues():
+      res += v + " : " + t.__str__() + ";\n"
+
+    for f in self.funcs:
+      res += f.__str__() + "\n"
+
+    res += "begin\n"
+    res += ";\n".join([s.__str__() for s in self.stats])
+    res += "\nend " + self.name + ".\n"
+    return res
 
 def main():
-  f = Function("f", [], None, 10, 200)
-  print(f)
+  #f = Function("f", [], None, 10, 200)
+  m = Module("test", 5, 10,10)
+  print(m)
 
 
 if __name__ == "__main__":
