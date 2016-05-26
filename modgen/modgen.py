@@ -222,12 +222,21 @@ class Symtab:
       self.d[typ] = []
     self.d[typ].append(name)
 
-  def get(self, length, typ): # return FactorQual
+  def get(self, length, typ, scope=None): # return FactorQual
     if typ not in self.d:
       self.d[typ] = []
-    v = self.fresh(typ)
-    self.d[typ].append(v)
-    return FactorQual(v, []) # naive implementation
+      v = self.fresh(typ)
+      self.d[typ].append(v)
+    if (typ == INT or typ == BOOL or typ == CHAR) and randint(0,1) == 0 and scope != None: # array indexing by half chance
+      keys = list(self.d.keys())
+      shuffle(keys)
+      for t in keys:
+        if t.isArray() and t.basetype == typ:
+          v = choice(self.d[t])
+          lens = partition(length, len(t.indices))
+          return FactorQual(v, [scope.make_expression(lens[i], INT) for i in range(len(lens))])
+
+    return FactorQual(choice(self.d[typ]), []) # just designator
 
 #########################################################################################################
 
@@ -416,7 +425,7 @@ class Function:
       pass
 
   def make_qual(self, length, typ):
-    return self.symtab.get(length, typ)
+    return self.symtab.get(length, typ, self)
 
   def make_factor(self, length, typ):
     if typ == INT:
@@ -589,7 +598,7 @@ class Module(Function):
 
 def main():
   #f = Function("f", [], None, 10, 200)
-  m = Module("test", 5, 10,10)
+  m = Module("test", 5, 10, 30)
   print(m)
 
 
