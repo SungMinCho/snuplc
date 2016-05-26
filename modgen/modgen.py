@@ -6,6 +6,13 @@ def cut(n):
   a = randint(0, n)
   return (a, n-a)
 
+def partition(num, n):
+  ans = []
+  for i in range(n):
+    (x,num) = cut(num)
+    ans.append(x)
+  return ans
+
 def indent(s):
   ss = s.split("\n")
   for i in range(len(ss)):
@@ -170,7 +177,8 @@ class StatWhile():
     self.body = body
   def __str__(self):
     res = "while (" + self.cond.__str__() + ")\ndo\n"
-    res += indent(";\n".join([b.__str__() for b in self.body]) + "\nend")
+    res += indent(";\n".join([b.__str__() for b in self.body]))
+    res += "\nend"
     return res
 
 class StatReturn():
@@ -361,20 +369,41 @@ class Function:
       res += " : " + self.return_type.__str__()
     res += " ;\n"
 
-    res += "var "
-
+    vardecl = ""
     for (t,v) in self.symtab.keyvalues():
       if v in args:
         continue
-      res += v + " : " + t.__str__() + ";\n"
+      vardecl += v + " : " + t.__str__() + ";\n"
+
+    if len(vardecl) > 0:
+      res += "var " + vardecl
 
     res += "begin\n"
     res += ";\n".join([s.__str__() for s in self.stats])
     res += "\nend " + self.name + ";\n"
 
-    return indent(res)
+    return res
 
   def make_call(self, length, rettype):
+    funcs = self.funcs
+    pick = list(range(len(funcs)))
+    shuffle(pick)
+    toCall = None
+    for i in pick:
+      f = funcs[i]
+      if f.return_type == rettype:
+        toCall = f
+        break
+    if toCall == None:
+      print('no function of return type :', rettype)
+      assert(False)
+    lens = partition(length, len(toCall.arg_types))
+    args = []
+    for i in range(len(lens)):
+      args.append(self.make_expression(lens[i], toCall.arg_types[i]))
+    return FactorCall(toCall.name, args)
+
+
     return FactorCall("TODO", []) # temporary
     if rettype == None:
       pass
@@ -499,8 +528,13 @@ class Function:
 class Module(Function):
   def __init__(self, name, funcnum, statnum, statlength):
     (sn1, sn2) = cut(statnum)
-    Function.__init__(self, name, [], None, sn1, statlength)
+    self.symtab = Symtab()
     self.funcs = []
+    self.funcs.append(Function("dummyINTfunc", [], INT, 0, 0, self))
+    self.funcs.append(Function("dummyCHARfunc", [], CHAR, 0, 0, self))
+    self.funcs.append(Function("dummyBOOLfunc", [], BOOL, 0, 0, self))
+    self.funcs.append(Function("dummyProcedure", [], None, 0, 0, self))
+    Function.__init__(self, name, [], None, sn1, statlength)
     for i in range(funcnum):
       self.funcs.append(Function(self.fresh_function_name(), [], randomBasetypeIncludingNull(), statnum, statlength, self)) # argtypes currently []
 
@@ -523,10 +557,12 @@ class Module(Function):
   def __str__(self):
     res = "module " + self.name + ";\n"
 
-    res += "var "
-
+    vardecl = ""
     for (t,v) in self.symtab.keyvalues():
       res += v + " : " + t.__str__() + ";\n"
+
+    if len(vardecl) > 0:
+      res += "var " + vardecl
 
     for f in self.funcs:
       res += f.__str__() + "\n"
