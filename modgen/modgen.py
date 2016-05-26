@@ -490,7 +490,7 @@ class Function:
 
 
 def main():
-  f = Function("f", [], None, 10, 200, Symtab())
+  f = Function("f", [], None, 10, 200)
   print(f)
 
 
