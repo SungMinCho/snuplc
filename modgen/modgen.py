@@ -318,6 +318,11 @@ def randomBasetype():
 def randomBasetypeIncludingNone():
   return choice([INT, CHAR, BOOL, None])
 
+def randomArgumentType():
+  if randint(0,1) == 0:
+    return randomBasetype()
+  return Arraytype(randomBasetype(), [randint(0, 100) for x in range(5)])
+
 def randomRelopAndType():
   r = choice([EQ, NE, LE, LT, GE, GT])
   if r == EQ or r == NE:
@@ -542,9 +547,11 @@ class Module(Function):
     self.funcs.append(Function("dummyCHARfunc", [], CHAR, 0, 0, self))
     self.funcs.append(Function("dummyBOOLfunc", [], BOOL, 0, 0, self))
     self.funcs.append(Function("dummyProcedure", [], None, 0, 0, self))
+
     Function.__init__(self, name, [], None, sn1, statlength)
     for i in range(funcnum):
-      self.funcs.append(Function(self.fresh_function_name(), [], randomBasetypeIncludingNone(), statnum, statlength, self)) # argtypes currently []
+      self.funcs.append(Function(self.fresh_function_name(), [randomArgumentType() for x in range(randint(0, 4))],
+      randomBasetypeIncludingNone(), statnum, statlength, self)) # argtypes currently []
 
     for i in range(statnum):
       self.stats.append(self.make_statement(statlength))
