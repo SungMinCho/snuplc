@@ -1,0 +1,461 @@
+from random import *
+
+def cut(n):
+  if n < 0:
+    return (0,0)
+  a = randint(0, n)
+  return (a, n-a)
+
+def indent(s):
+  ss = s.split("\n")
+  for i in range(len(ss)):
+    ss[i] = "  " + ss[i]
+  return "\n".join(ss)
+
+class Symbol:
+  def __init__(self, s):
+    self.s = s
+  def __str__(self):
+    return self.s
+  def __eq__(self, other):
+    return self.s == other.s
+
+PLUS = Symbol("+")
+MINUS = Symbol("-")
+MULT = Symbol("*")
+DIV = Symbol("/")
+POS = Symbol("+")
+NEG = Symbol("-")
+NOT = Symbol("!")
+OR = Symbol("||")
+AND = Symbol("&&")
+
+EQ = Symbol("=")
+NE = Symbol("#")
+LT = Symbol("<")
+LE = Symbol("<=")
+GT = Symbol(">")
+GE = Symbol(">=")
+
+class Expr0:
+  def __init__(self, simplexp):
+    self.simplexp = simplexp
+  def __str__(self):
+    return self.simplexp.__str__()
+
+class Expr1:
+  def __init__(self, simplexp1, relOp, simplexp2):
+    self.simplexp1 = simplexp1
+    self.relOp = relOp
+    self.simplexp2 = simplexp2
+  def __str__(self):
+    return self.simplexp1.__str__() + " " + self.relOp.__str__() + " " + self.simplexp2.__str__()
+
+class Simplexp:
+  def __init__(self, terms, termOps, unary=None):
+    self.terms = terms
+    self.termOps = termOps
+    self.unary = unary
+    assert(len(self.termOps) + 1 == len(self.terms))
+  def __str__(self):
+    res = ""
+    if self.unary:
+      res += self.unary.__str__() + " "
+    res += self.terms[0].__str__()
+    for (o, t) in list(zip(self.termOps, self.terms[1:])):
+      res += " " + o.__str__() + " " + t.__str__()
+    return res
+
+class Term:
+  def __init__(self, factors, factOps):
+    self.factors = factors
+    self.factOps = factOps
+    assert(len(self.factOps) + 1 == len(self.factors))
+  def __str__(self):
+    res = self.factors[0].__str__()
+    for (o, f) in list(zip(self.factOps, self.factors[1:])):
+      res += " " + o.__str__() + " " + f.__str__()
+    return res
+
+# need to implement qualident
+
+class FactorQual: # qualident
+  def __init__(self, name, indices):
+    self.name = name
+    self.indices = indices
+  def __str__(self):
+    return self.name + "[" + "][".join([i.__str__() for i in indices]) + "]"
+
+class FactorNum: # number
+  def __init__(self, n):
+    self.n = n
+  def __str__(self):
+    return str(self.n)
+
+class FactorBool: # boolean
+  def __init__(self, b):
+    self.b = b
+  def __str__(self):
+    if self.b:
+      return "true"
+    else:
+      return "false"
+
+class FactorChar: # char
+  def __init__(self, c):
+    self.c = c
+  def __str__(self):
+    return "'" + self.c + "'"
+
+class FactorStr: # str
+  def __init__(self, s):
+    self.string = s
+  def __str__(self):
+    return '"' + self.string + '"'
+
+class FactorExp : # expression
+  def __init__(self, e):
+    self.e = e
+  def __str__(self):
+    return self.e.__str__()
+
+class FactorCall: # call
+  def __init__(self, name, args):
+    self.name = name
+    self.args = args
+  def __str__(self):
+    return self.name + "(" + ", ".join([a.__str__() for a in self.args]) + ")"
+
+class FactorNot: # !
+  def __init__(self, f):
+    self.f = f
+  def __str__(self):
+    return "!" + self.f.__str__()
+
+#########################################################################################################
+
+class StatAssign():
+  def __init__(self, q, e):
+    self.q = q
+    self.e = e
+  def __str__(self):
+    return self.q.__str__() + " := " + self.e.__str__()
+
+class StatCall():
+  def __init__(self, call):
+    self.call = call
+  def __str__(self):
+    return self.call.__str__()
+
+class StatIf():
+  def __init__(self, cond, body1, body2):
+    self.cond = cond
+    self.body1 = body1
+    self.body2 = body2
+  def __str__(self):
+    res = "if (" + self.cond.__str__() + ")\nthen"
+    if len(self.body1) > 0:
+      res += "\n"
+    res += indent(";\n".join([b.__str__() for b in self.body1]))
+    if len(self.body2) > 0:
+      res += indent("\nelse\n" + ";\n".join([b.__str__() for b in self.body2]))
+    res += "\nend"
+    return res
+
+class StatWhile():
+  def __init__(self, cond, body):
+    self.cond = cond
+    self.body = body
+  def __str__(self):
+    res = "while (" + self.cond.__str__() + ")\ndo\n"
+    res += indent(";\n".join([b.__str__() for b in self.body]) + "\nend")
+    return res
+
+class StatReturn():
+  def __init__(self, e=None):
+    self.e = e
+  def __str__(self):
+    if self.e:
+      return "return " + self.e.__str__()
+    else:
+      return "return"
+
+#########################################################################################################
+
+class Symtab:
+  def __init__(self, copy=None):
+    self.d = {}
+    if copy:
+      for k in copy.d:
+        d[k] = copy[k]
+  def keyvalues(self): # return (k,v)s when k -> [v,v,v,v,v]
+    for k in self.d:
+      vs = self.d[k]
+      for v in vs:
+        yield (k,v)
+
+  def get(self, length, typ): # return FactorQual
+    return Symbol("H") #TODO
+
+#########################################################################################################
+
+class Type:
+  def __init__(self):
+    pass
+  def isArray(self):
+    return False
+  def __hash__(self):
+    return self.__dict__.values()
+  def __eq__(self, other):
+    # may h ave to change
+    return self.__hash__() == other.__hash__()
+
+class Basetype(Type):
+  def __init__(self, typename):
+    self.typename = typename
+  def __str__(self):
+    return self.typename
+  def __eq__(self, other):
+    if self.typeclass() != other.typeclass():
+      return False
+    return self.typename == other.typename
+  def typeclass(self):
+    return 0
+
+class Arraytype(Type):
+  def __init__(self, basetype, indices):
+    assert(len(indices) > 0)
+    self.basetype = basetype
+    self.indices = indices
+  def isArray(self):
+    return True
+  def typeclass(self):
+    return 1
+  def __str__(self):
+    return self.basetype.__str__() + "[" + "][".join([i.__str__() for i in indices]) + "]"
+  def __eq__(self, other):
+    if self.typeclass() != other.typeclass():
+      return False
+    if (not (self.basetype == other.basetype)):
+      return False
+    if (len(self.indices) != len(other.indices)):
+      return False
+    for i in range(len(self.indices)):
+      if self.indices[i] != other.indices[i]:
+        return False
+    return True
+
+class Pointertype(Type):
+  def __init__(self, base):
+    assert(base.isArray())
+    self.base = base
+  def __str__(self):
+    return self.base.__str__()
+  def typeclass(self):
+    return 2
+  def __eq__(self, other):
+    if self.typeclass() != other.typeclass():
+      return False
+    return self.basetype == other.basetype
+
+INT = Basetype("integer")
+CHAR = Basetype("char")
+BOOL = Basetype("boolean")
+STRING = Basetype("string") # careful...
+
+def randomBasetype():
+  return choice([INT, CHAR, BOOL])
+
+def randomBasetypeIncludingNull():
+  return choice([INT, CHAR, BOOL, None])
+
+def randomRelopAndType():
+  r = choice([EQ, NE, LE, LT, GE, GT])
+  if r == EQ or r == NE:
+    return (r, randomBasetype())
+  else:
+    return (r, choice([CHAR, INT]))
+
+#########################################################################################################
+
+class Function:
+  def __init__(self, name, arg_types, return_type, statnum, statlength, parentSymtab):
+    self.name = name
+    self.arg_types = arg_types
+    self.return_type = return_type
+    self.symtab = Symtab(parentSymtab) # copy global variables
+    self.arguments = []
+    for t in arg_types:
+      v = self.symtab.fresh(t)
+      self.symtab.add(t, v)
+      self.arguments.append((t, v))
+
+    self.stats = []
+    for i in range(statnum):
+      self.stats.append(self.make_statement(statlength))
+
+  def __str__(self):
+    res = ""
+    if self.return_type == None:
+      res += "procedure " + self.name + "("
+    else:
+      res += "function " + self.name + "("
+
+    args = []
+    if len(self.arguments) > 0:
+      (t0,v0) = self.arguments[0]
+      args.append(v0)
+      res += v0 + " : " + t0.__str__()
+    for (t,v) in self.arguments[1:]:
+      res += " ; "
+      res += v + " : " + t.__str__()
+      args.append(v)
+
+    res += ")"
+    if self.return_type:
+      res += " : " + return_type.__str__()
+    res += " ;\n"
+
+    res += "var "
+
+    for (t,v) in self.symtab.keyvalues():
+      if v in args:
+        continue
+      res += v + " : " + t.__str__() + ";\n"
+
+    res += "begin\n"
+    res += ";\n".join([s.__str__() for s in self.stats])
+    res += "\nend " + self.name + ";\n\n"
+
+    return res
+
+  def make_call(self, length, rettype):
+    return FactorCall("TODO", []) # temporary
+    if rettype == None:
+      pass
+    else:
+      pass
+
+  def make_qual(self, length, typ):
+    return self.symtab.get(length, typ)
+
+  def make_factor(self, length, typ):
+    if typ == INT:
+      if length <= 0:
+        return FactorNum(randint(0, 100000))
+      elif randint(0,1) == 0:
+        return FactorExp(self.make_expression(length-1, typ))
+      else:
+        return self.make_call(length, typ)
+    elif typ == BOOL:
+      if length <= 0:
+        return FactorBool(choice([True, False]))
+      elif randint(0,1) == 0:
+        return FactorExp(self.make_expression(length-1, typ))
+      else:
+        return self.make_call(length, typ)
+    elif typ == CHAR:
+      if length <= 0:
+        return FactorChar(choice(['a','b','c','d']))
+      elif randint(0,1) == 0:
+        return FactorExp(self.make_expression(length-1, typ))
+      else:
+        return self.make_call(length, typ)
+    elif typ == STRING:
+      return FactorStr(choice["hello", "bye"])
+    else:
+      return self.make_qual(length, typ)
+
+  def make_term(self, length, typ):
+    if length <= 0 or (not (typ == BOOL or typ == INT)):
+      return Term([self.make_factor(length, typ)], [])
+    (x, l) = cut(length)
+    factors = [self.make_factor(x, typ)]
+    factOps = []
+    while l > 0:
+      (x, l) = cut(l)
+      factors.append(self.make_factor(x-1, typ))
+      if typ == BOOL:
+        factOps.append(AND)
+      else:
+        assert(typ == INT)
+        factOps.append(choice([MULT, DIV]))
+    return Term(factors, factOps)
+
+  def make_simplexpr(self, length, typ):
+    unary = None
+    if randint(0, 1) == 1 and typ == INT:
+      unary = choice([POS, NEG])
+      length -= 1
+
+    if length <= 0 or (not (typ == BOOL or typ == INT)):
+      return Simplexp([self.make_term(length, typ)], [], unary)
+    else:
+      (x, l) = cut(length)
+      terms = [self.make_term(x, typ)]
+      termOps = []
+      while l > 0:
+        (x, l) = cut(l)
+        terms.append(self.make_term(x-1, typ))
+        if typ == BOOL:
+          termOps.append(OR)
+        else:
+          assert(typ == INT)
+          termOps.append(choice([PLUS, MINUS]))
+      return Simplexp(terms, termOps, unary)
+
+  def make_expression(self, length, typ):
+    r = randint(0, 1)
+    if r == 0 or (not (typ == BOOL)):
+      return Expr0(self.make_simplexpr(length, typ))
+    else:
+      (r,t) = randomRelopAndType()
+      (len1, len2) = cut(length)
+      return Expr1(self.make_simplexpr(len1, t), r, self.make_simplexpr(len2, t))
+
+  def make_statement(self, statlength):
+    r = randint(0, 4)
+    if r == 0:
+      (len1,len2) = cut(statlength-1)
+      t = randomBasetype()
+      return StatAssign(self.make_qual(len1, t), self.make_expression(len2, t))
+    elif r == 1:
+      return StatCall(self.make_call(statlength, randomBasetypeIncludingNull()))
+    elif r == 2:
+      (len2, len3) = cut(statlength-1)
+      (len1, len2) = cut(len2)
+      body1 = []
+      l = len2
+      while l > 0:
+        (x, l) = cut(l)
+        body1.append(self.make_statement(x))
+
+      body2 = []
+      l = len3
+      while l > 0:
+        (x, l) = cut(l)
+        body1.append(self.make_statement(x))
+      return StatIf(self.make_expression(len1, BOOL), body1, body2)
+    elif r == 3:
+      (len1, len2) = cut(statlength-1)
+      body = []
+      l = len2
+      l = len2
+      while l > 0:
+        (x, l) = cut(l)
+        body.append(self.make_statement(x))
+      return StatWhile(self.make_expression(len1, BOOL), body)
+    else:
+      if self.return_type == None:
+        return StatReturn()
+      else:
+        return StatReturn(self.make_expression(statlength-1, self.return_type))
+
+
+def main():
+  f = Function("f", [], None, 10, 200, Symtab())
+  print(f)
+
+
+if __name__ == "__main__":
+  main()
