@@ -84,7 +84,9 @@ class FactorQual: # qualident
     self.name = name
     self.indices = indices
   def __str__(self):
-    return self.name + "[" + "][".join([i.__str__() for i in indices]) + "]"
+    if len(self.indices) == 0:
+      return self.name
+    return self.name + "[" + "][".join([i.__str__() for i in self.indices]) + "]"
 
 class FactorNum: # number
   def __init__(self, n):
@@ -188,14 +190,35 @@ class Symtab:
     if copy:
       for k in copy.d:
         d[k] = copy[k]
+
   def keyvalues(self): # return (k,v)s when k -> [v,v,v,v,v]
     for k in self.d:
       vs = self.d[k]
       for v in vs:
         yield (k,v)
 
+  def fresh(self, typ):
+    vs = []
+    for k in self.d:
+      vs += self.d[k]
+    c = 0
+    v = "v" + str(c)
+    while v in vs:
+      c += 1
+      v = "v" + str(c)
+    return v
+
+  def add(self, typ, name):
+    if typ not in self.d:
+      self.d[typ] = []
+    self.d[typ].append(name)
+
   def get(self, length, typ): # return FactorQual
-    return Symbol("H") #TODO
+    if typ not in self.d:
+      self.d[typ] = []
+    v = self.fresh(typ)
+    self.d[typ].append(v)
+    return FactorQual(v, []) # naive implementation
 
 #########################################################################################################
 
@@ -205,16 +228,19 @@ class Type:
   def isArray(self):
     return False
   def __hash__(self):
-    return self.__dict__.values()
-  def __eq__(self, other):
-    # may h ave to change
-    return self.__hash__() == other.__hash__()
+    return hash(self.__dict__.values())
+  def __ne__(self, other):
+    return not (self==other)
 
 class Basetype(Type):
   def __init__(self, typename):
     self.typename = typename
   def __str__(self):
     return self.typename
+  def __hash__(self):
+    return hash(self.typename)
+  def __ne__(self, other):
+    return not (self==other)
   def __eq__(self, other):
     if self.typeclass() != other.typeclass():
       return False
@@ -232,7 +258,11 @@ class Arraytype(Type):
   def typeclass(self):
     return 1
   def __str__(self):
-    return self.basetype.__str__() + "[" + "][".join([i.__str__() for i in indices]) + "]"
+    return self.basetype.__str__() + "[" + "][".join([i.__str__() for i in self.indices]) + "]"
+  def __hash__(self):
+    return self.basetype.__hash__()
+  def __ne__(self, other):
+    return not (self==other)
   def __eq__(self, other):
     if self.typeclass() != other.typeclass():
       return False
@@ -253,6 +283,10 @@ class Pointertype(Type):
     return self.base.__str__()
   def typeclass(self):
     return 2
+  def __hash__(self):
+    return self.base.__hash__()
+  def __ne__(self, other):
+    return not (self==other)
   def __eq__(self, other):
     if self.typeclass() != other.typeclass():
       return False
@@ -279,11 +313,14 @@ def randomRelopAndType():
 #########################################################################################################
 
 class Function:
-  def __init__(self, name, arg_types, return_type, statnum, statlength, parentSymtab):
+  def __init__(self, name, arg_types, return_type, statnum, statlength, parent=None):
     self.name = name
     self.arg_types = arg_types
     self.return_type = return_type
-    self.symtab = Symtab(parentSymtab) # copy global variables
+    if parent:
+      self.symtab = Symtab(parent.symtab) # copy global variables
+    else:
+      self.symtab = Symtab()
     self.arguments = []
     for t in arg_types:
       v = self.symtab.fresh(t)
