@@ -583,7 +583,7 @@ class Module(Function):
 
     vardecl = ""
     for (t,v) in self.symtab.keyvalues():
-      res += v + " : " + t.__str__() + ";\n"
+      vardecl += v + " : " + t.__str__() + ";\n"
 
     if len(vardecl) > 0:
       res += "var " + vardecl
