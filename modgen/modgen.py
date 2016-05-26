@@ -126,7 +126,7 @@ class FactorExp : # expression
   def __init__(self, e):
     self.e = e
   def __str__(self):
-    return self.e.__str__()
+    return "(" + self.e.__str__() + ")"
 
 class FactorCall: # call
   def __init__(self, name, args):
