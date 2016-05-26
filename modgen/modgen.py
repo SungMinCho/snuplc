@@ -315,7 +315,7 @@ STRING = Basetype("string") # careful...
 def randomBasetype():
   return choice([INT, CHAR, BOOL])
 
-def randomBasetypeIncludingNull():
+def randomBasetypeIncludingNone():
   return choice([INT, CHAR, BOOL, None])
 
 def randomRelopAndType():
@@ -436,7 +436,7 @@ class Function:
       else:
         return self.make_call(length, typ)
     elif typ == STRING:
-      return FactorStr(choice["hello", "bye"])
+      return FactorStr(choice(["hello\\n", "bye\\n"]))
     else:
       return self.make_qual(length, typ)
 
@@ -494,7 +494,7 @@ class Function:
       t = randomBasetype()
       return StatAssign(self.make_qual(len1, t), self.make_expression(len2, t))
     elif r == 1:
-      return StatCall(self.make_call(statlength, randomBasetypeIncludingNull()))
+      return StatCall(self.make_call(statlength, randomBasetypeIncludingNone()))
     elif r == 2:
       (len2, len3) = cut(statlength-1)
       (len1, len2) = cut(len2)
@@ -530,13 +530,21 @@ class Module(Function):
     (sn1, sn2) = cut(statnum)
     self.symtab = Symtab()
     self.funcs = []
+    self.funcs.append(Function("ReadInt", [], INT, 0, 0, self))
+    self.funcs.append(Function("WriteInt", [INT], None, 0, 0, self))
+    self.funcs.append(Function("WriteChar", [CHAR], None, 0, 0, self))
+    self.funcs.append(Function("WriteStr", [STRING], None, 0, 0, self))
+    self.funcs.append(Function("WriteLn", [], None, 0, 0, self))
+
+    self.IOFuncNum = len(self.funcs)
+
     self.funcs.append(Function("dummyINTfunc", [], INT, 0, 0, self))
     self.funcs.append(Function("dummyCHARfunc", [], CHAR, 0, 0, self))
     self.funcs.append(Function("dummyBOOLfunc", [], BOOL, 0, 0, self))
     self.funcs.append(Function("dummyProcedure", [], None, 0, 0, self))
     Function.__init__(self, name, [], None, sn1, statlength)
     for i in range(funcnum):
-      self.funcs.append(Function(self.fresh_function_name(), [], randomBasetypeIncludingNull(), statnum, statlength, self)) # argtypes currently []
+      self.funcs.append(Function(self.fresh_function_name(), [], randomBasetypeIncludingNone(), statnum, statlength, self)) # argtypes currently []
 
     for i in range(statnum):
       self.stats.append(self.make_statement(statlength))
@@ -564,7 +572,7 @@ class Module(Function):
     if len(vardecl) > 0:
       res += "var " + vardecl
 
-    for f in self.funcs:
+    for f in self.funcs[self.IOFuncNum:]:
       res += f.__str__() + "\n"
 
     res += "begin\n"
