@@ -45,11 +45,11 @@ def main():
       print(m, file=modfile)
 
     with open("temp.mod", "r") as f, open("ref", "w") as refout, open("you", "w") as youout:
-      ref = subprocess.Popen([reference_program, f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      ref = subprocess.Popen([reference_program, "temp.mod"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       refout.write(ref.stdout.read().decode())
       refout.write(ref.stderr.read().decode())
 
-      yours = subprocess.Popen([your_program, f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      yours = subprocess.Popen([your_program, "temp.mod"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       youout.write(yours.stdout.read().decode())
       youout.write(yours.stderr.read().decode())
 
