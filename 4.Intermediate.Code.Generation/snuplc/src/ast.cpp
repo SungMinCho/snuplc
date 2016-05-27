@@ -1108,18 +1108,19 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb)
       return t;
     }
   } else {
-    CTacAddr* l = _left->ToTac(cb);
-    CTacAddr* r = _right->ToTac(cb);
-
-    CTacAddr* t = cb->CreateTemp(GetType());
     CTacLabel* ltrue = cb->CreateLabel();
     CTacLabel* lfalse = cb->CreateLabel();
     CTacLabel* lnext = cb->CreateLabel();
     CTacLabel* ldummy = cb->CreateLabel();
+
+    CTacAddr* l = _left->ToTac(cb);
+    CTacAddr* r = _right->ToTac(cb);
+
     cb->AddInstr(new CTacInstr(GetOperation(), ltrue, l, r));
     cb->AddInstr(new CTacInstr(opGoto, lfalse));
 
     cb->AddInstr(ltrue);
+    CTacAddr* t = cb->CreateTemp(GetType());
     cb->AddInstr(new CTacInstr(opAssign, t, new CTacConst(1)));
     cb->AddInstr(new CTacInstr(opGoto, lnext));
 
@@ -1158,10 +1159,9 @@ CTacAddr* CAstBinaryOp::ToTac(CCodeBlock *cb,
       assert(false && "condition expression should be of type boolean");
     }
   } else {
+    CTacLabel* ldummy = cb->CreateLabel();
     CTacAddr* l = _left->ToTac(cb);
     CTacAddr* r = _right->ToTac(cb);
-
-    CTacLabel* ldummy = cb->CreateLabel();
 
     cb->AddInstr(new CTacInstr(GetOperation(), ltrue, l, r));
     cb->AddInstr(new CTacInstr(opGoto, lfalse));
