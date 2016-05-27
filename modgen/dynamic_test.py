@@ -68,7 +68,13 @@ def main():
         diffs.append(d)
       diff = diffs
 
-      if len(diff) > 0: #different
+      different = False
+      for line in diff:
+        if line.startswith('-') or line.startswith('+'):
+          different = True
+          break
+
+      if different #different
         subprocess.Popen(["cp", "temp.mod", os.path.join(savewrongfiles, "wrong" + str(wrongcount) + ".mod")]).communicate()
         with open(os.path.join(savewrongfiles, "log" + str(wrongcount)), "w") as log:
           for line in diff:
