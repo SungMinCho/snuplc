@@ -253,14 +253,14 @@ CTacAddr* CAstScope::ToTac(CCodeBlock *cb)
   assert (cb != NULL);
 
   CAstStatement *s = GetStatementSequence();
-  while(s != NULL) {
+  while(s != NULL) { // statements -> TAC. connect each by "next" label
     CTacLabel *next = cb->CreateLabel();
     s->ToTac(cb, next);
     cb->AddInstr(next);
     s = s->GetNext();
   }
 
-  cb->CleanupControlFlow();
+  cb->CleanupControlFlow(); // clean up control flow
 
   return NULL;
 }
@@ -479,10 +479,10 @@ void CAstStatAssign::toDot(ostream &out, int indent) const
 CTacAddr* CAstStatAssign::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
   assert(cb != NULL);
-  CTacAddr* t = _rhs->ToTac(cb);
-  CTacAddr* l = _lhs->ToTac(cb);
-  cb->AddInstr(new CTacInstr(opAssign, l, t));
-  cb->AddInstr(new CTacInstr(opGoto, next));
+  CTacAddr* t = _rhs->ToTac(cb); // result of rhs
+  CTacAddr* l = _lhs->ToTac(cb); // result of lhs
+  cb->AddInstr(new CTacInstr(opAssign, l, t)); // assign rhs to lhs
+  cb->AddInstr(new CTacInstr(opGoto, next)); // obvious
   return NULL;
 }
 
@@ -531,6 +531,7 @@ void CAstStatCall::toDot(ostream &out, int indent) const
 CTacAddr* CAstStatCall::ToTac(CCodeBlock *cb, CTacLabel *next)
 {
   _call->ToTac(cb);
+  cb->AddInstr(new CTacInstr(opGoto, next));
   return NULL;
 }
 
