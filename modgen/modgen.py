@@ -1,4 +1,6 @@
 from random import *
+import sys
+import os
 
 def cut(n):
   if n < 0:
@@ -598,8 +600,29 @@ class Module(Function):
 
 def main():
   #f = Function("f", [], None, 10, 200)
-  m = Module("test", 5, 10, 1000)
-  print(m)
+  if len(sys.argv) < 2:
+    print('usage : python3 modgen.py outputrootfolder [howmanyfiles] [funcnum] [statnum] [statlength]')
+    exit()
+
+  outputrootfolder = sys.argv[1]
+  filenum = 100
+  if len(sys.argv) >= 3:
+    filenum = int(sys.argv[2])
+  funcnum = 5
+  if len(sys.argv) >= 4:
+    funcnum = int(sys.argv[3])
+  statnum = 10
+  if len(sys.argv) >= 5:
+    funcnum = int(sys.argv[4])
+  statlength = 1000
+  if len(sys.argv) >= 6:
+    statlength = int(sys.argv[5])
+
+  for filecount in range(filenum):
+    f = os.path.join(outputrootfolder, "file" + str(filecount) + ".mod")
+    with open(f, "w") as f:
+      m = Module("test", funcnum, statnum, statlength)
+      print(m, file=f)
 
 
 if __name__ == "__main__":
