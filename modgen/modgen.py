@@ -332,7 +332,7 @@ def randomBasetypeIncludingNone():
 def randomArgumentType():
   if randint(0,1) == 0:
     return randomBasetype()
-  return Arraytype(randomBasetype(), [randint(0, 100) for x in range(5)])
+  return Arraytype(randomBasetype(), [randint(1, 100) for x in range(5)])
 
 def randomRelopAndType():
   r = choice([EQ, NE, LE, LT, GE, GT])
