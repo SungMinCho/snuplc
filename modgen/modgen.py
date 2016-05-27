@@ -474,7 +474,7 @@ class Function:
 
   def make_simplexpr(self, length, typ):
     unary = None
-    if randint(0, 1) == 1 and typ == INT:
+    if randint(0, 1) == 1 and typ == INT and False: # don't do unary because reference has RELAXED bug. annoying for testS
       unary = choice([POS, NEG])
       length -= 1
 
