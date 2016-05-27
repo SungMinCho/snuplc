@@ -63,6 +63,11 @@ def main():
       d = difflib.Differ()
       diff = d.compare(reflines, youlines)
 
+      diffs = []
+      for d in diff:
+        diffs.append(d)
+      diff = diffs
+
       if len(diff) > 0: #different
         subprocess.Popen(["cp", "temp.mod", os.path.join(savewrongfiles, "wrong" + str(wrongcount) + ".mod")]).communicate()
         with open(os.path.join(savewrongfiles, "log" + str(wrongcount))) as log:
