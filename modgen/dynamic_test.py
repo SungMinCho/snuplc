@@ -44,7 +44,7 @@ def main():
     with open("temp.mod", "w") as modfile:
       print(m, file=modfile)
 
-    with open("ref", "w") as refout, open("you", "w") as youout:
+    with open("temp.mod", "r") as f, open("ref", "w") as refout, open("you", "w") as youout:
       ref = subprocess.Popen([reference_program, f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       refout.write(ref.stdout.read().decode())
       refout.write(ref.stderr.read().decode())
