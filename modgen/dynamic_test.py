@@ -67,16 +67,16 @@ def main():
         subprocess.Popen(["cp", "temp.mod", os.path.join(savewrongfiles, "wrong" + str(wrongcount) + ".mod")]).communicate()
         with open(os.path.join(savewrongfiles, "log" + str(wrongcount))) as log:
           for line in diff:
-          if line[0] == '-':
-            if sys.stdout.isatty():
-              print(hilite(line, 'red'), end='', file=log)
-            else:
-              print(line, end='', file=log)
-          elif line[0] == '+':
-            if sys.stdout.isatty():
-              print(hilite(line, 'green'), end='', file=log)
-            else:
-              print(line, end='', file=log)
+            if line[0] == '-':
+              if sys.stdout.isatty():
+                print(hilite(line, 'red'), end='', file=log)
+              else:
+                print(line, end='', file=log)
+            elif line[0] == '+':
+              if sys.stdout.isatty():
+                print(hilite(line, 'green'), end='', file=log)
+              else:
+                print(line, end='', file=log)
         wrongcount += 1
       else: # success
         success += 1
