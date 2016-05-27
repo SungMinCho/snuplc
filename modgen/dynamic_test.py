@@ -70,7 +70,7 @@ def main():
 
       if len(diff) > 0: #different
         subprocess.Popen(["cp", "temp.mod", os.path.join(savewrongfiles, "wrong" + str(wrongcount) + ".mod")]).communicate()
-        with open(os.path.join(savewrongfiles, "log" + str(wrongcount))) as log:
+        with open(os.path.join(savewrongfiles, "log" + str(wrongcount)), "w") as log:
           for line in diff:
             if line[0] == '-':
               if sys.stdout.isatty():
