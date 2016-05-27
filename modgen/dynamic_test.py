@@ -87,7 +87,7 @@ def main():
         success += 1
 
       total += 1
-      print(str(susccess) + '/' + str(total), end="\r")
+      print(str(success) + '/' + str(total), end="\r")
 
     subprocess.Popen(["rm", "ref"]).communicate()
     subprocess.Popen(["rm", "you"]).communicate()
