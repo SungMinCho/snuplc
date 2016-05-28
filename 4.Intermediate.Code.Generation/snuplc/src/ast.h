@@ -238,8 +238,11 @@ class CAstScope : public CAstNode {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
     virtual CTacAddr* ToTac(CCodeBlock *cb);
 
+    /// @brief return the code block
     virtual CCodeBlock* GetCodeBlock(void) const;
 
     /// @}
@@ -435,6 +438,9 @@ class CAstStatement : public CAstNode {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
+    /// @param next the next label we should go after this
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *next);
 
     /// @}
@@ -515,6 +521,9 @@ class CAstStatAssign : public CAstStatement {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
+    /// @param next the next label we should go after this
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *next);
 
     /// @}
@@ -592,6 +601,9 @@ class CAstStatCall : public CAstStatement {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
+    /// @param next the next label we should go after this
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *next);
 
     /// @}
@@ -671,6 +683,9 @@ class CAstStatReturn : public CAstStatement {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
+    /// @param next the next label we should go after this
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *next);
 
     /// @}
@@ -753,6 +768,9 @@ class CAstStatIf : public CAstStatement {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
+    /// @param next the next label we should go after this
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *next);
 
     /// @}
@@ -830,6 +848,9 @@ class CAstStatWhile : public CAstStatement {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return NULL
+    /// @param cb code block
+    /// @param next the next label we should go after this
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *next);
 
     /// @}
@@ -876,7 +897,12 @@ class CAstExpression : public CAstNode {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -980,7 +1006,12 @@ class CAstBinaryOp : public CAstOperation {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -1057,7 +1088,12 @@ class CAstUnaryOp : public CAstOperation {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -1138,6 +1174,7 @@ class CAstSpecialOp : public CAstOperation {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
 
     /// @}
@@ -1222,7 +1259,12 @@ class CAstFunctionCall : public CAstExpression {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -1316,7 +1358,12 @@ class CAstDesignator : public CAstOperand {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -1408,7 +1455,12 @@ class CAstArrayDesignator : public CAstDesignator {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -1489,7 +1541,12 @@ class CAstConstant : public CAstOperand {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
@@ -1568,7 +1625,12 @@ class CAstStringConstant : public CAstOperand {
     /// @name transformation into TAC
     /// @{
 
+    /// @brief add TAC for this in code block and return the address that holds the result value
     virtual CTacAddr* ToTac(CCodeBlock *cb);
+
+    /// @brief add TAC for this in code block and return NULL. this functions shouldn't be called, so it asserts false
+    /// @param ltrue label that we should jump to when the expression evaluates to true
+    /// @param lfalse label that we should jump to when the expression evaluates to false
     virtual CTacAddr* ToTac(CCodeBlock *cb, CTacLabel *ltrue,CTacLabel *lfalse);
 
     /// @}
