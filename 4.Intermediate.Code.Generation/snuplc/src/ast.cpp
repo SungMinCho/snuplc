@@ -1712,21 +1712,21 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   if(!isPointer) pointerToSym = CTypeManager::Get()->GetPointer(GetSymbol()->GetDataType());
   const CType* INT = CTypeManager::Get()->GetInt();
   CTacAddr* sym = new CTacName(GetSymbol());
-  CTacAddr* base = sym;
+  CTacAddr* base = sym; // base address = a
 
-  const CArrayType* arraytype;
+  const CArrayType* arraytype; // actual array type
   if(!isPointer) arraytype = dynamic_cast<const CArrayType*>(GetSymbol()->GetDataType());
   else arraytype = dynamic_cast<const CArrayType*>(dynamic_cast<const CPointerType*>(GetSymbol()->GetDataType())->GetBaseType());
 
   if(!isPointer) {
     CTacAddr* t = cb->CreateTemp(pointerToSym);
     cb->AddInstr(new CTacInstr(opAddress, t, sym));
-    base = t;
+    base = t; // base <- &a
   }
 
   CTacAddr* prevResult = GetIndex(0)->ToTac(cb);
   int i;
-  int actual_dimensions = arraytype->GetNDim();
+  int actual_dimensions = arraytype->GetNDim(); // get actual number of dimensions
   for(i = 1; i < actual_dimensions; i++) {
     cb->AddInstr(new CTacInstr(opParam, new CTacConst(1), new CTacConst(i+1))); // param 1 <- i+1
 
@@ -1739,16 +1739,16 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
     }
 
     CTacAddr* dim = cb->CreateTemp(INT);
-    cb->AddInstr(new CTacInstr(opCall, dim, new CTacName(DIM)));
+    cb->AddInstr(new CTacInstr(opCall, dim, new CTacName(DIM))); // get dimension
 
     CTacAddr* lift = cb->CreateTemp(INT);
-    cb->AddInstr(new CTacInstr(opMul, lift, prevResult, dim));
+    cb->AddInstr(new CTacInstr(opMul, lift, prevResult, dim)); // lift the previous result by * dim
 
     CTacAddr* cur;
     if(i < GetNIndices()) {
       cur = GetIndex(i)->ToTac(cb);
     } else {
-      cur = new CTacConst(0);
+      cur = new CTacConst(0); // A:int[3][4], A[2] is A[2][0]
     }
 
     CTacAddr* update = cb->CreateTemp(INT);
@@ -1759,7 +1759,7 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
 
   CTacAddr* mulbydatasize = cb->CreateTemp(INT);
   int datasize = arraytype->GetBaseType()->GetSize();
-  cb->AddInstr(new CTacInstr(opMul, mulbydatasize, prevResult, new CTacConst(datasize)));
+  cb->AddInstr(new CTacInstr(opMul, mulbydatasize, prevResult, new CTacConst(datasize))); // mult by basetype datasize
 
   if(!isPointer) { // param 0 <- &a
     CTacAddr* p = cb->CreateTemp(pointerToSym);
@@ -1770,7 +1770,7 @@ CTacAddr* CAstArrayDesignator::ToTac(CCodeBlock *cb)
   }
 
   CTacAddr* dofs = cb->CreateTemp(INT);
-  cb->AddInstr(new CTacInstr(opCall, dofs, new CTacName(DOFS)));
+  cb->AddInstr(new CTacInstr(opCall, dofs, new CTacName(DOFS))); // dofs
 
   CTacAddr* result_plus_dofs = cb->CreateTemp(INT);
   cb->AddInstr(new CTacInstr(opAdd, result_plus_dofs, mulbydatasize, dofs));
