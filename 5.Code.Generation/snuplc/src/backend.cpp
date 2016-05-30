@@ -201,6 +201,12 @@ void CBackendx86::EmitScope(CScope *scope)
   //
   // emit function epilogue
 
+  const list<CTacInstr*> instrs = scope->GetCodeBlock()->GetInstr();
+  list<CTacInstr*>::const_iterator it;
+  for(it = instrs.begin(); it != instrs.end(); it++) {
+    EmitInstruction(*it);
+  }
+
   _out << endl;
 }
 
