@@ -25,13 +25,13 @@ def main():
   savewrongfiles = "wrongfiles"
   if len(sys.argv) >= 4:
     savewrongfiles = sys.argv[3]
-  funcnum = 5
+  funcnum = 3
   if len(sys.argv) >= 5:
     funcnum = int(sys.argv[4])
-  statnum = 10
+  statnum = 3
   if len(sys.argv) >= 6:
     funcnum = int(sys.argv[5])
-  statlength = 100
+  statlength = 3
   if len(sys.argv) >= 7:
     statlength = int(sys.argv[6])
 
@@ -54,10 +54,10 @@ def main():
     with open(tempfilename, "w") as modfile:
       print(m, file=modfile)
 
-    subprocess.Popen([reference_program, tempfilename]).communicate()
+    subprocess.Popen([reference_program, tempfilename], stdout=subprocess.PIPE).communicate()
     subprocess.Popen(["cp", tempfilename + ".s", reffilename]).communicate()
 
-    subprocess.Popen([your_program, tempfilename]).communicate()
+    subprocess.Popen([your_program, tempfilename], stdout=subprocess.PIPE).communicate()
     subprocess.Popen(["cp", tempfilename + ".s", yoursfilename]).communicate()
 
     with open(reffilename, "r") as refin, open(yoursfilename, "r") as youin:
@@ -79,10 +79,11 @@ def main():
           break
 
       if different: #different
-        subprocess.Popen(["cp", "temp.mod", os.path.join(savewrongfiles, "wrong" + str(wrongcount) + ".mod")]).communicate()
+        subprocess.Popen(["cp", tempfilename, os.path.join(savewrongfiles, "wrong" + str(wrongcount) + ".mod")]).communicate()
         with open(os.path.join(savewrongfiles, "log" + str(wrongcount)), "w") as log:
           for line in diff:
-            print(line, end='', file=log)
+            if line.startswith('-') or line.startswith('+'):
+                print(line, end='', file=log)
         wrongcount += 1
       else: # success
         success += 1
@@ -90,10 +91,6 @@ def main():
       total += 1
       print(str(success) + '/' + str(total), end="\r")
 
-    subprocess.Popen(["rm", "ref"]).communicate()
-    subprocess.Popen(["rm", "you"]).communicate()
-
-    subprocess.Popen(["rm", "temp.mod"]).communicate()
 
 
 if __name__ == "__main__":
