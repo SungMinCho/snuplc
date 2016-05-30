@@ -16,7 +16,7 @@ def hilite(string, color):
 def main():
 
   if len(sys.argv) < 2:
-    print('usage : python3 modgen.py reference yours [save_wrongfiles_at="wrongfiles"] [funcnum=5] [statnum=10] [statlength=100]')
+    print('usage : python dynamic_test.py reference yours [save_wrongfiles_at="wrongfiles"] [funcnum=5] [statnum=10] [statlength=100]')
     exit()
 
   reference_program = sys.argv[1]
