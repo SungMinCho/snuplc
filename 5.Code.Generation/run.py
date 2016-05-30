@@ -65,8 +65,8 @@ def main():
         else:
           print("above differences at file : ", f)
 
-        subprocess.Popen(["rm", "ref"]).communicate()
-        subprocess.Popen(["rm", "you"]).communicate()
+        subprocess.Popen(["rm", "ref.s"]).communicate()
+        subprocess.Popen(["rm", "yours.s"]).communicate()
 
   print()
   print("score", success, "/", total)
