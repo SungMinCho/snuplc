@@ -29,10 +29,10 @@ def main():
         total += 1
         f = os.path.join(root, f)
         
-        ref = subprocess.Popen(["./reference/snuplc", f], stdout=subprocess.PIPE)
+        ref = subprocess.Popen(["./reference/snuplc", f], stdout=subprocess.PIPE).communicate()
         subprocess.Popen(["cp", f+".s", "ref.s"]).communicate()        
 
-        yours = subprocess.Popen(["./snuplc/snuplc", f], stdout=subprocess.PIPE)
+        yours = subprocess.Popen(["./snuplc/snuplc", f], stdout=subprocess.PIPE).communicate()
         subprocess.Popen(["cp", f+".s", "yours.s"]).communicate()
 
         with open("ref.s", "r") as refin, open("yours.s", "r") as youin:
