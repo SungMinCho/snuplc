@@ -132,6 +132,14 @@ void CBackendx86::EmitCode(void)
   // forall s in subscopes do
   //   EmitScope(s)
   // EmitScope(program)
+  SetScope(_m);
+  const vector<CScope *> subscopes = GetScope()->GetSubscopes();
+
+  for(int i = 0; i < subscopes.size(); i++) {
+    EmitScope(subscopes[i]);
+  }
+
+  EmitScope(_m);
 
   _out << _ind << "# end of text section" << endl
        << _ind << "#-----------------------------------------" << endl
