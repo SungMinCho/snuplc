@@ -33,7 +33,7 @@ def main():
         subprocess.Popen(["cp", f+".s", "ref.s"]).communicate()        
 
         yours = subprocess.Popen(["./snuplc/snuplc", f], stdout=subprocess.PIPE)
-        subprocess.Popen(["cp", f+".s", "yours.s"])
+        subprocess.Popen(["cp", f+".s", "yours.s"]).communicate()
 
         with open("ref.s", "r") as refin, open("yours.s", "r") as youin:
           reflines = refin.readlines()
