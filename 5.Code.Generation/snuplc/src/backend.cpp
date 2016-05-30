@@ -313,11 +313,22 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
   cmt << i;
 
   EOperation op = i->GetOperation();
+  ostringstream opString;
 
   switch (op) {
     // binary operators
     // dst = src1 op src2
     // TODO
+    case opAdd:
+    case opSub:
+    case opMul:
+    case opDiv:
+    case opAnd:
+    case opOr:
+    opString << op;
+    mnm = opString.str();
+    EmitInstruction(mnm, "arguments", cmt.str());
+    break;
     // unary operators
     // dst = op src1
     // TODO
