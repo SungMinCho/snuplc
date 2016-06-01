@@ -186,6 +186,7 @@ CScope* CBackendx86::GetScope(void) const
 void CBackendx86::EmitScope(CScope *scope)
 {
   assert(scope != NULL);
+  SetScope(scope);
 
   string label;
 
