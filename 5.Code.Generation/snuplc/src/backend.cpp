@@ -441,7 +441,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     }
     break;
     case opReturn:
-    if(i->GetDest()) {
+    if(i->GetSrc(1)) {
       Load(i->GetSrc(1), "%eax", cmt.str());
       EmitInstruction("jmp", Label("exit"));
     } else {
@@ -623,6 +623,15 @@ string CBackendx86::Condition(EOperation cond) const
 
 int CBackendx86::OperandSize(CTac *t) const
 {
+  CTacAddr* addr = dynamic_cast<CTacAddr*>(t);
+  assert(addr != NULL);
+  if(CTacName* name = dynamic_cast<CTacName*>(addr)) {
+    int size = name->GetSymbol()->GetDataType()->GetDataSize();
+    if(size > 4) return 4;
+    return size;
+  } else {
+    return 4;
+  }
   int size = 4;
 
   // TODO
