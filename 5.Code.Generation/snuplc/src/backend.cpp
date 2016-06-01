@@ -351,6 +351,26 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opMul:
     case opDiv:
 
+    case opNeg:
+    case opPos:
+    case opNot:
+
+    case opAssign:
+    case opAddress:
+    case opCast:
+
+    case opGoto:
+    case opEqual:
+    case opNotEqual:
+    case opLessThan:
+    case opLessEqual:
+    case opBiggerThan:
+    case opBiggerEqual:
+
+    case opCall:
+    case opReturn:
+    case opParam:
+
     // unary operators
     // dst = op src1
     // TODO
