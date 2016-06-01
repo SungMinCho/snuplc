@@ -230,6 +230,15 @@ void CBackendx86::EmitScope(CScope *scope)
   stack << "$" << stacksize << ", %esp";
   EmitInstruction("subl", stack.str(), "make room for locals");
   _out << endl;
+
+  EmitInstruction("cld", "", "memset local stack area to 0");
+  EmitInstruction("xorl", "%eax, %eax");
+  stringstream quarter_stack_ecx;
+  quarter_stack_ecx << "$" << stacksize / 4 << ", %ecx";
+  EmitInstruction("movl", quarter_stack_ecx.str());
+  EmitInstruction("mov", "%esp, %edi");
+  EmitInstruction("rep", "stosl");
+  _out << endl;
   //
   // forall i in instructions do
   //   EmitInstruction(i)
