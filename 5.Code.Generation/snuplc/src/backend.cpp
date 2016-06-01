@@ -198,7 +198,9 @@ void CBackendx86::EmitScope(CScope *scope)
 
   // TODO
   // ComputeStackOffsets(scope)
-  ComputeStackOffsets(scope->GetSymbolTable(), 8, 12); // temp
+  int callee_saved_size = 12;
+  int stacksize = ComputeStackOffsets(scope->GetSymbolTable(), 8, callee_saved_size); // temp
+  stacksize -= callee_saved_size;
   //
   // emit function prologue
   _out << _ind << "# stack offsets:" << endl;
@@ -212,10 +214,19 @@ void CBackendx86::EmitScope(CScope *scope)
       (*i)->print(repr);
 
       _out << _ind << "#" << setw(13) << right << name.str() << setw(4) << 
-//        right << size.str() << setw(29) << right << repr.str() << endl;
         right  << size.str() << "  " << repr.str() << endl;
     }
   }
+
+  _out << _ind << "# prologue" << endl;
+  EmitInstruction("pushl", "%ebp");
+  EmitInstruction("movl", "%esp, %ebp");
+  EmitInstruction("pushl", "%ebx", "save callee saved registers");
+  EmitInstruction("pushl", "%esi");
+  EmitInstruction("pushl", "%edi");
+  stringstream stack;
+  stack << "$" << stacksize << ", %esp";
+  EmitInstruction("subl", stack.str(), "make room for locals");
   //
   // forall i in instructions do
   //   EmitInstruction(i)
@@ -378,7 +389,10 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
 
     case opCall:
     case opReturn:
+    break;
     case opParam:
+    Load(i->GetSrc(1), "%eax", cmt.str());
+    EmitInstruction("pushl", "%eax");
     break;
 
     // unary operators
