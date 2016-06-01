@@ -542,7 +542,7 @@ size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,
       (*it)->SetBaseRegister("%ebp");
       (*it)->SetOffset(param_ofs + param->GetIndex() * 4);
     } else if(dynamic_cast<CSymLocal*>(*it)) {
-      if(((*it)->GetDataType()->IsInt() || (*it)->GetDataType()->IsArray())
+      if(((*it)->GetDataType()->IsInt() || (*it)->GetDataType()->IsArray() || (*it)->GetDataType()->IsPointer())
           && (size % 4 != 0)) {
         size += 4 - (size % 4);
       }
