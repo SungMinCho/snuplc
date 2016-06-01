@@ -386,8 +386,17 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opLessEqual:
     case opBiggerThan:
     case opBiggerEqual:
+    break;
 
     case opCall:
+    {
+      CTacAddr* calltac = i->GetSrc(1);
+      CTacName* callname = dynamic_cast<CTacName*>(calltac);
+      EmitInstruction("call", callname->GetSymbol()->GetName(), cmt.str());
+      EmitInstruction("addl", "$4, %esp");
+      // save return value if we should. not implemented yet
+    }
+    break;
     case opReturn:
     break;
     case opParam:
