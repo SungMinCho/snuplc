@@ -231,7 +231,6 @@ void CBackendx86::EmitScope(CScope *scope)
   // forall i in instructions do
   //   EmitInstruction(i)
   //
-  // emit function epilogue
 
   const list<CTacInstr*> instrs = scope->GetCodeBlock()->GetInstr();
   list<CTacInstr*>::const_iterator it;
@@ -239,6 +238,14 @@ void CBackendx86::EmitScope(CScope *scope)
     EmitInstruction(*it);
   }
 
+  // emit function epilogue
+  _out << "l_" << scope->GetName() << "_exit:" << endl;
+  _out << _ind << "# epilogue" << endl;
+  EmitInstruction("addl", stack.str());
+  EmitInstruction("popl", "%edi");
+  EmitInstruction("popl", "%esi");
+  EmitInstruction("popl", "%ebx");
+  EmitInstruction("popl", "%ebp");
   _out << endl;
 }
 
