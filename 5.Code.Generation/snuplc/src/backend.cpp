@@ -124,8 +124,13 @@ void CBackendx86::EmitCode(void)
        << endl
        << _ind << "# entry point and pre-defined functions" << endl
        << _ind << ".global main" << endl
-       << _ind << ".extern Input" << endl
-       << _ind << ".extern Output" << endl
+       << _ind << ".extern DIM" << endl
+       << _ind << ".extern DOFS" << endl
+       << _ind << ".extern ReadInt" << endl
+       << _ind << ".extern WriteInt" << endl
+       << _ind << ".extern WriteStr" << endl
+       << _ind << ".extern WriteChar" << endl
+       << _ind << ".extern WriteLn" << endl
        << endl;
 
   // TODO
