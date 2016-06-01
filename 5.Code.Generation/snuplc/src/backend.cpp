@@ -231,13 +231,24 @@ void CBackendx86::EmitScope(CScope *scope)
   EmitInstruction("subl", stack.str(), "make room for locals");
   _out << endl;
 
-  EmitInstruction("cld", "", "memset local stack area to 0");
-  EmitInstruction("xorl", "%eax, %eax");
-  stringstream quarter_stack_ecx;
-  quarter_stack_ecx << "$" << stacksize / 4 << ", %ecx";
-  EmitInstruction("movl", quarter_stack_ecx.str());
-  EmitInstruction("mov", "%esp, %edi");
-  EmitInstruction("rep", "stosl");
+  if(stacksize >= 20) { // memset 0
+    EmitInstruction("cld", "", "memset local stack area to 0");
+    EmitInstruction("xorl", "%eax, %eax");
+    stringstream quarter_stack_ecx;
+    quarter_stack_ecx << "$" << stacksize / 4 << ", %ecx";
+    EmitInstruction("movl", quarter_stack_ecx.str());
+    EmitInstruction("mov", "%esp, %edi");
+    EmitInstruction("rep", "stosl");
+  } else { // memset 0 manually
+    EmitInstruction("xorl", "%eax, %eax", "memset local stack area to 0");
+    int offset = stacksize - 4;
+    while(offset >= 0) {
+      stringstream ss;
+      ss << "%eax, " << offset << "(%esp)";
+      EmitInstruction("movl", ss.str());
+      offset -= 4;
+    }
+  }
   _out << endl;
   //
   // forall i in instructions do
@@ -252,6 +263,7 @@ void CBackendx86::EmitScope(CScope *scope)
   }
 
   // emit function epilogue
+  _out << endl;
   _out << Label("exit") << ":" << endl;
   _out << _ind << "# epilogue" << endl;
   EmitInstruction("addl", stack.str(), "remove locals");
@@ -633,21 +645,21 @@ int CBackendx86::OperandSize(CTac *t) const
   CTacAddr* addr = dynamic_cast<CTacAddr*>(t);
   assert(addr != NULL);
   if(CTacName* name = dynamic_cast<CTacName*>(addr)) {
-    int size = name->GetSymbol()->GetDataType()->GetDataSize();
+    const CSymbol* sym = name->GetSymbol();
+    if(CTacReference* ref = dynamic_cast<CTacReference*>(name))
+      sym = ref->GetDerefSymbol();
+    int size = sym->GetDataType()->GetDataSize();
     if(size > 4) return 4;
     return size;
   } else {
     return 4;
   }
-  int size = 4;
 
   // TODO
   // compute the size for operand t of type CTacName
   // Hint: you need to take special care of references (incl. references to pointers!)
   //       and arrays. Compare your output to that of the reference implementation
   //       if you are not sure.
-
-  return size;
 }
 
 size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,
