@@ -229,9 +229,9 @@ void CBackendx86::EmitScope(CScope *scope)
   stringstream stack;
   stack << "$" << stacksize << ", %esp";
   EmitInstruction("subl", stack.str(), "make room for locals");
-  _out << endl;
 
   if(stacksize >= 20) { // memset 0
+    _out << endl;
     EmitInstruction("cld", "", "memset local stack area to 0");
     EmitInstruction("xorl", "%eax, %eax");
     stringstream quarter_stack_ecx;
@@ -239,7 +239,8 @@ void CBackendx86::EmitScope(CScope *scope)
     EmitInstruction("movl", quarter_stack_ecx.str());
     EmitInstruction("mov", "%esp, %edi");
     EmitInstruction("rep", "stosl");
-  } else { // memset 0 manually
+  } else if (stacksize > 0) { // memset 0 manually
+    _out << endl;
     EmitInstruction("xorl", "%eax, %eax", "memset local stack area to 0");
     int offset = stacksize - 4;
     while(offset >= 0) {
