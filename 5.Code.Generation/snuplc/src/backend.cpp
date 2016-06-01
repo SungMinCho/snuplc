@@ -249,6 +249,7 @@ void CBackendx86::EmitScope(CScope *scope)
       offset -= 4;
     }
   }
+  EmitLocalData(scope);
   _out << endl;
   //
   // forall i in instructions do
@@ -356,7 +357,39 @@ void CBackendx86::EmitLocalData(CScope *scope)
 {
   assert(scope != NULL);
 
-  // TODO TODO!
+  CSymtab* symtab = scope->GetSymbolTable();
+  vector<CSymbol*> slist = symtab->GetSymbols();
+  vector<CSymbol*>::iterator it;
+  for(it = slist.begin(); it != slist.end(); it++) {
+    const CArrayType* typ = dynamic_cast<const CArrayType*>((*it)->GetDataType());
+    if(typ != NULL && (*it)->GetSymbolType() == stLocal && (dynamic_cast<CSymParam*>(*it) == NULL)) {
+      // is array and is local that is not param
+      int offset = (*it)->GetOffset();
+      string base = (*it)->GetBaseRegister();
+
+      int dim = typ->GetNDim();
+
+      stringstream ss, ss2;
+      ss << "$" << dim << "," << offset << "(" << base << ")";
+      ss2 << "local array '" << (*it)->GetName() << "': " << dim << " dimensions";
+
+      EmitInstruction("movl", ss.str(), ss2.str());
+
+      int dimcount = 1;
+      while(typ != NULL) {
+        stringstream ss, ss2;
+        offset += 4;
+        int n = typ->GetNElem();
+        ss << "$" << n << "," << offset << "(" << base << ")";
+        ss2 << "  dimension " << dimcount << ": " << n << " elements";
+
+        EmitInstruction("movl", ss.str(), ss2.str());
+
+        typ = dynamic_cast<const CArrayType*>(typ->GetInnerType());
+        dim++;
+      }
+    }
+  }
 }
 
 void CBackendx86::EmitCodeBlock(CCodeBlock *cb)
