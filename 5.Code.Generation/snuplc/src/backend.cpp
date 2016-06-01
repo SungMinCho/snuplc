@@ -329,22 +329,25 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
   cmt << i;
 
   EOperation op = i->GetOperation();
-  ostringstream opString;
 
   switch (op) {
     // binary operators
     // dst = src1 op src2
     // TODO
     case opAdd:
+    mnm = "addl";
+    Load(i->GetSrc(1), "%eax", cmt.str());
+    Load(i->GetSrc(2), "%ebx");
+    EmitInstruction(mnm, "%ebx, %eax");
+    Store(i->GetDest(), 'a');
+    break;
+
     case opSub:
     case opMul:
     case opDiv:
     case opAnd:
     case opOr:
-    opString << op;
-    mnm = opString.str();
-    EmitInstruction(mnm, "arguments", cmt.str());
-    break;
+
     // unary operators
     // dst = op src1
     // TODO
@@ -438,11 +441,25 @@ void CBackendx86::Store(CTac *dst, char src_base, string comment)
 
 string CBackendx86::Operand(const CTac *op)
 {
-  string operand;
+  string operand = "TODO";
 
   // TODO
   // return a string representing op
   // hint: take special care of references (op of type CTacReference)
+  
+  if(const CTacName *name = dynamic_cast<const CTacName*>(op)) {
+    stringstream ss;
+    const CSymbol* sym = name->GetSymbol();
+//    if(const CTacReference* ref = dynamic_cast<const CTacReference*>(name)) {
+//      sym = ref->GetDerefSymbol();
+//    }
+    if(sym->GetSymbolType() == stGlobal) {
+      ss << sym->GetName();
+    } else {
+      ss << sym->GetOffset() << "(" << sym->GetBaseRegister() << ")";
+    }
+    operand = ss.str();
+  }
 
   return operand;
 }
