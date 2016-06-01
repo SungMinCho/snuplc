@@ -683,14 +683,18 @@ int CBackendx86::OperandSize(CTac *t) const
   assert(addr != NULL);
   if(CTacName* name = dynamic_cast<CTacName*>(addr)) {
     const CSymbol* sym = name->GetSymbol();
-    if(CTacReference* ref = dynamic_cast<CTacReference*>(name))
+    bool isDeref = false;
+    if(CTacReference* ref = dynamic_cast<CTacReference*>(name)) {
       sym = ref->GetDerefSymbol();
+      isDeref = true;
+    }
     int size;
     const CType* typ = sym->GetDataType();
     if(const CArrayType* arr = dynamic_cast<const CArrayType*>(typ)) {
       size = arr->GetBaseType()->GetDataSize();
     } else if(const CPointerType* pnt = dynamic_cast<const CPointerType*>(typ)) {
-      if(const CArrayType* arr = dynamic_cast<const CArrayType*>(pnt->GetBaseType())) {
+      const CArrayType* arr = dynamic_cast<const CArrayType*>(pnt->GetBaseType());
+      if(isDeref && (arr != NULL)) {
         size = arr->GetBaseType()->GetDataSize();
       } else {
         size = typ->GetDataSize();
