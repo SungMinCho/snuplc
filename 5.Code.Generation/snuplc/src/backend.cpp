@@ -618,6 +618,9 @@ string CBackendx86::Operand(const CTac *op)
     stringstream ss;
     const CSymbol* sym = name->GetSymbol();
     if(dynamic_cast<const CTacReference*>(name)) {
+      stringstream ss;
+      ss << sym->GetOffset() << "(" << sym->GetBaseRegister() << "), %edi";
+      EmitInstruction("movl", ss.str());
       return "(%edi)";
     }
     if(sym->GetSymbolType() == stGlobal) {
