@@ -409,9 +409,11 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opAddress:
     case opCast:
 
-    case opGoto:
-
     break;
+    case opGoto:
+    EmitInstruction("jmp", Label(dynamic_cast<const CTacLabel*>(i->GetDest())), cmt.str());
+    break;
+
     case opEqual:
     case opNotEqual:
     case opLessThan:
