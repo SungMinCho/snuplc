@@ -382,6 +382,9 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     break;
 
     case opNeg:
+    Load(i->GetSrc(1), "%eax", cmt.str());
+    EmitInstruction("negl", "%eax");
+    Store(i->GetDest(), 'a');
     case opPos:
     case opNot:
     break;
