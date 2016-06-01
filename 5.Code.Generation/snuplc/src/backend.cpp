@@ -690,7 +690,7 @@ int CBackendx86::OperandSize(CTac *t) const
     if(const CArrayType* arr = dynamic_cast<const CArrayType*>(typ)) {
       size = arr->GetBaseType()->GetDataSize();
     } else if(const CPointerType* pnt = dynamic_cast<const CPointerType*>(typ)) {
-      if(constCArrayType* arr = dynamic_cast<const CArrayType*>(typ->GetBaseType())) {
+      if(const CArrayType* arr = dynamic_cast<const CArrayType*>(pnt->GetBaseType())) {
         size = arr->GetBaseType()->GetDataSize();
       } else {
         size = typ->GetDataSize();
