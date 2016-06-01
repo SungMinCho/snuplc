@@ -433,7 +433,13 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       CTacAddr* calltac = i->GetSrc(1);
       CTacName* callname = dynamic_cast<CTacName*>(calltac);
       EmitInstruction("call", callname->GetSymbol()->GetName(), cmt.str());
-      EmitInstruction("addl", "$4, %esp");
+      const CSymProc* symproc = dynamic_cast<const CSymProc*>(callname->GetSymbol());
+      int numargs = symproc->GetNParams();
+      if(numargs > 0) {
+        stringstream ss;
+        ss << "$" << numargs*4 << ", %esp";
+        EmitInstruction("addl", ss.str());
+      }
       // save return value if we should
       if(i->GetDest()) {
         Store(i->GetDest(), 'a');
