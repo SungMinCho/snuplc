@@ -336,17 +336,20 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     // TODO
     case opAdd:
     mnm = "addl";
+    case opSub:
+    if(mnm.empty()) mnm = "subl";
+    case opAnd:
+    if(mnm.empty()) mnm = "andl";
+    case opOr:
+    if(mnm.empty()) mnm = "orl";
     Load(i->GetSrc(1), "%eax", cmt.str());
     Load(i->GetSrc(2), "%ebx");
     EmitInstruction(mnm, "%ebx, %eax");
     Store(i->GetDest(), 'a');
     break;
 
-    case opSub:
     case opMul:
     case opDiv:
-    case opAnd:
-    case opOr:
 
     // unary operators
     // dst = op src1
