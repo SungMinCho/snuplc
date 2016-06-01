@@ -252,13 +252,14 @@ void CBackendx86::EmitScope(CScope *scope)
   }
 
   // emit function epilogue
-  _out << "l_" << scope->GetName() << "_exit:" << endl;
+  _out << Label("exit") << ":" << endl;
   _out << _ind << "# epilogue" << endl;
   EmitInstruction("addl", stack.str(), "remove locals");
   EmitInstruction("popl", "%edi");
   EmitInstruction("popl", "%esi");
   EmitInstruction("popl", "%ebx");
   EmitInstruction("popl", "%ebp");
+  EmitInstruction("ret", "");
   _out << endl;
 }
 
@@ -406,7 +407,6 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     Load(i->GetSrc(1), "%eax", cmt.str());
     Store(i->GetDest(), 'a');
     break;
-    case opAddress:
     case opCast:
 
     break;
@@ -434,10 +434,19 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       CTacName* callname = dynamic_cast<CTacName*>(calltac);
       EmitInstruction("call", callname->GetSymbol()->GetName(), cmt.str());
       EmitInstruction("addl", "$4, %esp");
-      // save return value if we should. not implemented yet
+      // save return value if we should
+      if(i->GetDest()) {
+        Store(i->GetDest(), 'a');
+      }
     }
     break;
     case opReturn:
+    if(i->GetDest()) {
+      Load(i->GetSrc(1), "%eax", cmt.str());
+      EmitInstruction("jmp", Label("exit"));
+    } else {
+      EmitInstruction("jmp", Label("exit"), cmt.str());
+    }
     break;
     case opParam:
     Load(i->GetSrc(1), "%eax", cmt.str());
@@ -456,6 +465,15 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     // dst = &src1
     // TODO
     // dst = *src1
+    case opAddress:
+    {
+      stringstream args;
+      args << Operand(i->GetSrc(1)) << ", %eax";
+      EmitInstruction("leal", args.str());
+      Store(i->GetDest(), 'a');
+    }
+    break;
+
     case opDeref:
       // opDeref not generated for now
       EmitInstruction("# opDeref", "not implemented", cmt.str());
@@ -546,9 +564,9 @@ string CBackendx86::Operand(const CTac *op)
   if(const CTacName *name = dynamic_cast<const CTacName*>(op)) {
     stringstream ss;
     const CSymbol* sym = name->GetSymbol();
-//    if(const CTacReference* ref = dynamic_cast<const CTacReference*>(name)) {
-//      sym = ref->GetDerefSymbol();
-//    }
+    if(dynamic_cast<const CTacReference*>(name)) {
+      return "(%edi)";
+    }
     if(sym->GetSymbolType() == stGlobal) {
       ss << sym->GetName();
     } else {
