@@ -354,8 +354,12 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opNeg:
     case opPos:
     case opNot:
+    break;
 
     case opAssign:
+    Load(i->GetSrc(1), "%eax", cmt.str());
+    Store(i->GetDest(), 'a');
+    break;
     case opAddress:
     case opCast:
 
@@ -370,6 +374,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opCall:
     case opReturn:
     case opParam:
+    break;
 
     // unary operators
     // dst = op src1
@@ -481,6 +486,10 @@ string CBackendx86::Operand(const CTac *op)
     } else {
       ss << sym->GetOffset() << "(" << sym->GetBaseRegister() << ")";
     }
+    operand = ss.str();
+  } else if(const CTacConst *con = dynamic_cast<const CTacConst*>(op)) {
+    stringstream ss;
+    ss << "$" << con->GetValue();
     operand = ss.str();
   }
 
