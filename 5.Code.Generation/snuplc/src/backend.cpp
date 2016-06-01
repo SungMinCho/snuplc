@@ -193,8 +193,24 @@ void CBackendx86::EmitScope(CScope *scope)
 
   // TODO
   // ComputeStackOffsets(scope)
+  ComputeStackOffsets(scope->GetSymbolTable(), 8, 12); // temp
   //
   // emit function prologue
+  _out << _ind << "# stack offsets:" << endl;
+  vector<CSymbol*> slist = scope->GetSymbolTable()->GetSymbols();
+  vector<CSymbol*>::iterator i;
+  for(i = slist.begin(); i != slist.end(); i++) {
+    if(dynamic_cast<CSymLocal*>(*i) != NULL || dynamic_cast<CSymParam*>(*i) != NULL) {
+      stringstream name, size, repr;
+      name << (*i)->GetOffset() << "(" << (*i)->GetBaseRegister() << ")";
+      size << (*i)->GetDataType()->GetSize();
+      (*i)->print(repr);
+
+      _out << _ind << "#" << setw(13) << right << name.str() << setw(4) << 
+//        right << size.str() << setw(29) << right << repr.str() << endl;
+        right  << size.str() << "  " << repr.str() << endl;
+    }
+  }
   //
   // forall i in instructions do
   //   EmitInstruction(i)
@@ -498,14 +514,23 @@ size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,
   //   compute offset on stack and store in symbol p
   //   set base register to %ebp
   //
-  int size = 0;
+  int size = local_ofs;
   int cursize;
   vector<CSymbol*>::iterator it;
   for(it = slist.begin(); it != slist.end(); it++) {
-    cursize = (*it)->GetDataType()->GetSize();
-    (*it)->SetBaseRegister("%ebp");
-    (*it)->SetOffset(cursize);
-    size += cursize;
+    if(CSymParam* param = dynamic_cast<CSymParam*>(*it)) {
+      (*it)->SetBaseRegister("%ebp");
+      (*it)->SetOffset(param_ofs + param->GetIndex() * 4);
+    } else if(dynamic_cast<CSymLocal*>(*it)) {
+      if(((*it)->GetDataType()->IsInt() || (*it)->GetDataType()->IsArray())
+          && (size % 4 != 0)) {
+        size += 4 - (size % 4);
+      }
+      cursize = (*it)->GetDataType()->GetSize();
+      (*it)->SetBaseRegister("%ebp");
+      (*it)->SetOffset(-size - cursize);
+      size += cursize;
+    }
   }
   // align size
   //
