@@ -365,7 +365,14 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     break;
 
     case opMul:
+    mnm = "imull";
     case opDiv:
+    if(mnm.empty()) mnm = "idivl";
+    Load(i->GetSrc(1), "%eax", cmt.str());
+    Load(i->GetSrc(2), "%ebx");
+    EmitInstruction(mnm, "%ebx");
+    Store(i->GetDest(), 'a');
+    break;
 
     case opNeg:
     case opPos:
