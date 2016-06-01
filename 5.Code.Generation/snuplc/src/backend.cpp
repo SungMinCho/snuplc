@@ -685,7 +685,13 @@ int CBackendx86::OperandSize(CTac *t) const
     const CSymbol* sym = name->GetSymbol();
     if(CTacReference* ref = dynamic_cast<CTacReference*>(name))
       sym = ref->GetDerefSymbol();
-    int size = sym->GetDataType()->GetDataSize();
+    int size;
+    const CType* typ = sym->GetDataType();
+    if(const CArrayType* arr = dynamic_cast<const CArrayType*>(typ)) {
+      size = arr->GetBaseType()->GetDataSize();
+    } else {
+      size = typ->GetDataSize();
+    }
     if(size > 4) return 4;
     return size;
   } else {
