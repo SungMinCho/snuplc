@@ -410,12 +410,20 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     case opCast:
 
     case opGoto:
+
+    break;
     case opEqual:
     case opNotEqual:
     case opLessThan:
     case opLessEqual:
     case opBiggerThan:
     case opBiggerEqual:
+    mnm = "j" + Condition(op);
+    Load(i->GetSrc(1), "%eax", cmt.str());
+    Load(i->GetSrc(2), "%ebx");
+    EmitInstruction("cmpl", "%ebx, %eax");
+    EmitInstruction(mnm, Label(dynamic_cast<const CTacLabel*>(i->GetDest())));
+
     break;
 
     case opCall:
