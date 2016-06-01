@@ -218,6 +218,7 @@ void CBackendx86::EmitScope(CScope *scope)
         right  << size.str() << "  " << repr.str() << endl;
     }
   }
+  _out << endl;
 
   _out << _ind << "# prologue" << endl;
   EmitInstruction("pushl", "%ebp");
@@ -228,11 +229,13 @@ void CBackendx86::EmitScope(CScope *scope)
   stringstream stack;
   stack << "$" << stacksize << ", %esp";
   EmitInstruction("subl", stack.str(), "make room for locals");
+  _out << endl;
   //
   // forall i in instructions do
   //   EmitInstruction(i)
   //
 
+  _out << _ind << "# function body" << endl;
   const list<CTacInstr*> instrs = scope->GetCodeBlock()->GetInstr();
   list<CTacInstr*>::const_iterator it;
   for(it = instrs.begin(); it != instrs.end(); it++) {
