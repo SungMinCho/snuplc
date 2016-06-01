@@ -489,7 +489,6 @@ size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,
   assert(symtab != NULL);
   vector<CSymbol*> slist = symtab->GetSymbols();
 
-  int size = 4; //temporary
   // TODO
   // foreach local symbol l in slist do
   //   compute aligned offset on stack and store in symbol l
@@ -499,8 +498,21 @@ size_t CBackendx86::ComputeStackOffsets(CSymtab *symtab,
   //   compute offset on stack and store in symbol p
   //   set base register to %ebp
   //
+  int size = 0;
+  int cursize;
+  vector<CSymbol*>::iterator it;
+  for(it = slist.begin(); it != slist.end(); it++) {
+    cursize = (*it)->GetDataType()->GetSize();
+    (*it)->SetBaseRegister("%ebp");
+    (*it)->SetOffset(cursize);
+    size += cursize;
+  }
   // align size
   //
+  int rem = size % 4; // align by 4
+  if(rem != 0) {
+    size += 4 - rem;
+  }
   // dump stack frame to assembly file
 
   return size;
