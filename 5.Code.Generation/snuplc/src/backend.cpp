@@ -498,7 +498,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
       Load(i->GetSrc(1), "%eax", cmt.str());
       EmitInstruction("jmp", Label("exit"));
     } else {
-      EmitInstruction("jmp", Label("exit"), cmt.str());
+      EmitInstruction("jmp", Label("exit"));
     }
     break;
     case opParam:
