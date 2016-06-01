@@ -241,7 +241,7 @@ void CBackendx86::EmitScope(CScope *scope)
   // emit function epilogue
   _out << "l_" << scope->GetName() << "_exit:" << endl;
   _out << _ind << "# epilogue" << endl;
-  EmitInstruction("addl", stack.str());
+  EmitInstruction("addl", stack.str(), "remove locals");
   EmitInstruction("popl", "%edi");
   EmitInstruction("popl", "%esi");
   EmitInstruction("popl", "%ebx");
