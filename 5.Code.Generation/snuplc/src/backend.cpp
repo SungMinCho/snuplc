@@ -391,6 +391,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     if(mnm.empty()) mnm = "idivl";
     Load(i->GetSrc(1), "%eax", cmt.str());
     Load(i->GetSrc(2), "%ebx");
+    if(mnm == "idivl") EmitInstruction("cdq", "");
     EmitInstruction(mnm, "%ebx");
     Store(i->GetDest(), 'a');
     break;
