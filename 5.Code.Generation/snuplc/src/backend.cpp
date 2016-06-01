@@ -469,7 +469,7 @@ void CBackendx86::EmitInstruction(CTacInstr *i)
     {
       stringstream args;
       args << Operand(i->GetSrc(1)) << ", %eax";
-      EmitInstruction("leal", args.str());
+      EmitInstruction("leal", args.str(), cmt.str());
       Store(i->GetDest(), 'a');
     }
     break;
