@@ -427,6 +427,11 @@ CTacTemp* CScope::CreateTemp(const CType *type)
   ostringstream tmp;
   tmp << "t" << _temp_id++;
 
+  while(GetSymbolTable()->FindSymbol(tmp.str())) {
+    tmp.clear();
+    tmp.str("");
+    tmp << "t" << _temp_id++;
+  }
   CSymbol *s = new CSymLocal(tmp.str(), type);
   GetSymbolTable()->AddSymbol(s);
 
