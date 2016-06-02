@@ -388,6 +388,7 @@ void CBackendx86::EmitLocalData(CScope *scope)
 
         typ = dynamic_cast<const CArrayType*>(typ->GetInnerType());
         dim++;
+        dimcount++;
       }
     }
   }
