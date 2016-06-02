@@ -214,8 +214,11 @@ void CBackendx86::EmitScope(CScope *scope)
       size << (*i)->GetDataType()->GetSize();
       (*i)->print(repr);
 
-      _out << _ind << "#" << setw(13) << right << name.str() << setw(4) << 
-        right  << size.str() << "  " << repr.str() << endl;
+      _out << _ind << "#" << "   " << right << setw(4) << to_string((*i)->GetOffset()) << "(" << (*i)->GetBaseRegister() << ")"
+        << right << "  " << setw(2) << (*i)->GetDataType()->GetSize() << "  " << repr.str() << endl;
+
+      //_out << _ind << "#" << "   " << right << setw(4) << right << name.str()
+      //  << right << "  " << setw(2) << size.str() << "  " << repr.str() << endl;
     }
   }
   _out << endl;
