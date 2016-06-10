@@ -1891,6 +1891,12 @@ CAstStringConstant::CAstStringConstant(CToken t, const string value,
   ostringstream o;
   o << "_str_" << ++_idx;
 
+  while(s->GetSymbolTable()->FindSymbol(o.str())) {
+    o.clear();
+    o.str("");
+    o << "_str_" << ++_idx;
+  }
+
   _sym = new CSymGlobal(o.str(), _type);
   _sym->SetData(_value);
   s->GetSymbolTable()->AddSymbol(_sym);
